@@ -1,0 +1,26 @@
+{
+  "name": "connect4webui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StephenMistele/Connect4WebUI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/StephenMistele/Connect4WebUI/issues"
+  },
+  "homepage": "https://github.com/StephenMistele/Connect4WebUI#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "follow-redirects": "^1.15.0",
+    "fs": "0.0.1-security",
+    "prompt-sync": "^4.2.0",
+    "request-promise": "^4.2.6"
+  }
+}

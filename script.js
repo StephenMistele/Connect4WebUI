@@ -2,11 +2,11 @@ const statusDisplay = document.querySelector('.game--status');
 //fix win checking on diagonals
 //style ui better
 //make board circles with colors?
-//make buttons hover mouse change
 //implement expirations on old games/players
 //implement timer on player turns
 
 var myturn = false;
+var gameactive = false;
 var playerid = "0";
 var gameid = "0";
 var board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -14,9 +14,13 @@ statusDisplay.innerHTML = `Create or join a game`;
 
 //Handle player move
 async function handleCellClick(clickedCellEvent) {
+    //Don't do anything if either game hasn't started yet, or game just ended
+    if (!gameactive)
+        return;
+
     //If click happens when not my turn, nothing happens
     if (!myturn) {
-        statusDisplay.innerHTML = `Waiting for move`;
+        statusDisplay.innerHTML = `Waiting for other player`;
         return;
     }
 
@@ -29,45 +33,24 @@ async function handleCellClick(clickedCellEvent) {
     moveresponse = await call(playerid, gameid, col, "move");
 
     //Check if won
-    if (moveresponse == "Game won") {
+    if (moveresponse[0] == "Game won") {
+        gameactive = false;
         statusDisplay.innerHTML = `Game won!`;
         updateboard(moveresponse[2]);
         return;
     }
 
     //Check if insert valid
-    else if (moveresponse == "Bad insert")
+    else if (moveresponse[0] == "Bad insert")
         return;
 
     //This shouldn't happen
-    else if (moveresponse == "Not your turn") {
+    else if (moveresponse[0] == "Not your turn") {
         statusDisplay.innerHTML = `Error`;
         return;
     }
     myturn = false;
     updateboard(moveresponse[2]);
-    waitloop();
-}
-
-//Handle game creation
-async function createGame() {
-    //Generate new player and game ID's
-    playerid = await call(0, 0, 0, "generateplayerid");
-    gameid = await call(0, 0, 0, "generategameid");
-    playerid = String(playerid);
-    gameid = String(gameid);
-
-    //Create board
-    let boardresult = await call(playerid, gameid, 0, "createboard");
-
-    //Check if creation failed
-    if (boardresult == "new game created")
-        statusDisplay.innerHTML = `Game id is ` + gameid;
-    else
-        statusDisplay.innerHTML = `Creation failed`;
-
-    //Reset board
-    board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     waitloop();
 }
 
@@ -91,41 +74,79 @@ async function waitloop() {
         response = await call(playerid, gameid, 0, "checkturn");
 
         //No other player yet
-        if (response == -1)
+        if (response[0] == -1)
             continue;
-        statusDisplay.innerHTML = `Waiting for move`;
+
+        statusDisplay.innerHTML = `Waiting for other player`;
 
         //If updated board is returned, it's my turn
-        if (Array.isArray(response)) {
+        if (response[0] == 1) {
             myturn = true;
             statusDisplay.innerHTML = `Your move!`;
-            updateboard(response);
+            updateboard(response[1]);
         }
 
         //If -2 is returned, I lost
-        if (response == -2) {
+        if (response[0] == -2) {
             statusDisplay.innerHTML = `Game lost`;
+            gameactive = false
+            updateboard(response[1]);
             return;
         }
         //Else not my turn, continue waiting
     }
 }
 
+//Resets the board
+function wipeboard() {
+    board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let pieces = document.querySelectorAll('.cell');
+    for (let i = 0; i < pieces.length; i++)
+        pieces[i].innerHTML = "";
+}
+
+//Handle game creation
+async function createGame() {
+    //Generate new game ID - and new player id IF playerid doesn't already exist
+    if (playerid == "0")
+    playerid = await call(0, 0, 0, "generateplayerid");
+    console.log(playerid)
+    gameid = await call(0, 0, 0, "generategameid");
+    playerid = String(playerid);
+    gameid = String(gameid);
+    
+    //Create board
+    let boardresult = await call(playerid, gameid, 0, "createboard");
+    
+    //Check if creation failed
+    if (boardresult == "new game created")
+    statusDisplay.innerHTML = `Game ID is ` + gameid;
+    else
+        statusDisplay.innerHTML = `Creation failed`;
+
+    //Reset board
+    wipeboard();
+    gameactive = true;
+    waitloop();
+}
+
 //Handle joining game
 async function joinGame() {
-    //Take in gameid input and generate player id
+    //Take in gameid input - and generate player id IF playerid doesn't already exist
     gameid = document.getElementById("txtInput").value;
-    if (isNaN(gameid)) {
+    if (isNaN(gameid) || gameid == "") {
         statusDisplay.innerHTML = `Enter a game id`;
         return;
     }
-    playerid = await call(0, 0, 0, "generateplayerid");
+    if (playerid == "0")
+        playerid = await call(0, 0, 0, "generateplayerid");
+    console.log(playerid)
     playerid = String(playerid);
     gameid = String(gameid);
 
     //Check if board already exists
     let gameexists = await call(playerid, gameid, 0, "checkturn")
-    if (gameexists == -2) {
+    if (gameexists[0] == -3) {
         statusDisplay.innerHTML = `Game doesn't exist`;
         return;
     }
@@ -140,13 +161,17 @@ async function joinGame() {
         statusDisplay.innerHTML = `Game full`;
         return;
     }
+    else if (boardresult == "already in game") {
+        return;
+    }
     else {
         statusDisplay.innerHTML = `Join failed`;
         return;
     }
 
     //Reset board
-    board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    wipeboard();
+    gameactive = true;
     statusDisplay.innerHTML = `Your move!`;
     waitloop();
 }

@@ -46,6 +46,7 @@ section {
     color: #5586e2;
     box-shadow: 2px 2px 2px 2px #d86c23;
     border: 2px solid #d86c23;
+    cursor: pointer;
 }
 
 .joingame {
@@ -56,4 +57,5 @@ section {
     color: #5586e2;
     box-shadow: 2px 2px 2px 2px #d86c23;
     border: 2px solid #d86c23;
+    cursor: pointer;
 }

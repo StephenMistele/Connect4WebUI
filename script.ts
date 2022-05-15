@@ -1,6 +1,5 @@
 const statusDisplay = document.querySelector('.game--status');
-//style ui better
-//conditional rendering on join/create buttons, and add leave game button - ensure no glitchyness when spamming
+//move timer
 
 const turnlen = 31
 var myturn: boolean = false;
@@ -10,10 +9,9 @@ var timer = turnlen
 var gameactive: boolean = false;
 var playerid: string = "0";
 var gameid: string = "0";
-var red:string = "#e94040";
-var yellow:string = "#e3c934";
-var defaultcolor:string = "#a4b9b9";
-var renderinput:boolean = false;
+var red: string = "#d92739";
+var yellow: string = "#F7EA14";
+var defaultcolor: string = "#E1E0E0";
 var board: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 statusDisplay.innerHTML = message
 
@@ -26,7 +24,6 @@ let x: number = setInterval(function () {
             timer++;
         timer--;
         statusDisplay.innerHTML = message + " " + timer
-
         if (timer <= 0 && myturn) {
             call(playerid, gameid, 0, "quit");
             statusDisplay.innerHTML = `Game lost`;
@@ -46,6 +43,13 @@ async function handleCellClick(clickedCellEvent) {
     const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
     let col: number = clickedCellIndex % 7;
     timerrunning = false;
+
+    //Check if other player already resigned
+    let existresponse = await call(playerid, gameid, 0, "checkturn");
+    if (existresponse[0] == -3){
+        gameactive = false;
+        statusDisplay.innerHTML = `Other player resigned`;
+    }
 
     //Post move request to server
     let moveresponse = await call(playerid, gameid, col, "move");
@@ -71,7 +75,6 @@ async function handleCellClick(clickedCellEvent) {
         message = `Error`;
         return;
     }
-    console.log("this is very bad");
     myturn = false;
     updateboard(moveresponse[2]);
     timer = turnlen;
@@ -121,12 +124,21 @@ async function waitloop() {
 
         //If -2 is returned, game over
         if (response[0] == -2) {
-            gameactive = false;
-            updateboard(response[1]);
-            if (response[2] == playerid)
-                statusDisplay.innerHTML = `Game won!`;
-            else
-                statusDisplay.innerHTML = `Game lost`;
+            if (gameactive) {
+                gameactive = false;
+                updateboard(response[1]);
+                if (response[2] == playerid)
+                    statusDisplay.innerHTML = `Other player resigned`;
+                else
+                    statusDisplay.innerHTML = `Game lost`;
+            }
+        }
+
+        if (response[0] == -3){
+            if (gameactive) {
+                gameactive = false;
+                statusDisplay.innerHTML = `Other player resigned`;
+            }
         }
         //Else not my turn, continue waiting
     }
@@ -143,16 +155,31 @@ function wipeboard() {
     }
 }
 
+function changebuttons(pregame: boolean) {
+    if (pregame) {
+        document.getElementById("joingame").style.display = "none";
+        document.getElementById("creategame").style.display = "none";
+        document.getElementById("txtinput").style.display = "none";
+        document.getElementById("quitgame").style.display = "initial";
+    }
+    else {
+        document.getElementById("joingame").style.display = "initial";
+        document.getElementById("joingame").style.opacity = ".5";
+        document.getElementById("creategame").style.display = "initial";
+        document.getElementById("txtinput").style.display = "initial";
+        document.getElementById("quitgame").style.display = "none";
+        statusDisplay.innerHTML = `Create or join a game`;
+        (<HTMLInputElement>document.getElementById("txtinput")).value = "";
+    }
+}
+
 //Handle game creation
 async function createGame() {
-    //temp
-    //document.getElementById("creategame").style.visibility = "hidden"
-    //If button pressed while in game, end it
+    //If button pressed while in game, end it SHOULDn't happen
     if (gameactive) {
         call(playerid, gameid, 0, "quit");
         timerrunning = false;
         gameactive = false;
-        myturn = false;
     }
     //Generate new game ID - and new player id IF playerid doesn't already exist
     if (playerid == "0")
@@ -166,12 +193,14 @@ async function createGame() {
 
     //Check if creation failed
     if (boardresult == "new game created")
-        statusDisplay.innerHTML = `Game ID is ` + gameid;
+        statusDisplay.innerHTML = `Joined game ` + gameid;
     else
         statusDisplay.innerHTML = `Creation failed`;
 
     //Reset board
+    myturn = false;
     wipeboard();
+    changebuttons(true);
     gameactive = true;
     timer = turnlen;
     waitloop();
@@ -180,16 +209,14 @@ async function createGame() {
 //Handle joining game
 async function joinGame() {
     //Take in gameid input - and generate player id IF playerid doesn't already exist
-    console.log("boutta do it")
-    let input: string = (<HTMLInputElement>document.getElementById("txtInput")).value;
-    console.log(input, "did it")
+    let input: string = (<HTMLInputElement>document.getElementById("txtinput")).value;
 
     //Check if missclick
     if (input == gameid || input == "")
         return;
 
     //if no playerid yet, make new one
-    if (playerid == "0"){
+    if (playerid == "0") {
         playerid = await call(0, 0, 0, "generateplayerid");
     }
 
@@ -226,9 +253,24 @@ async function joinGame() {
     wipeboard();
     gameactive = true;
     timerrunning = true;
+    changebuttons(true);
     message = `Your move!`;
     timer = turnlen;
     waitloop();
+}
+
+//Called on pressing quit game button
+async function quitGame() {
+    gameactive = false;
+    timerrunning = false;
+    call(playerid, gameid, 0, "quit");
+    gameid = "0"
+    changebuttons(false);
+    wipeboard()
+}
+
+function enableButton() {
+    document.getElementById('joingame').style.opacity = "1";
 }
 
 //Handle API calls
@@ -249,3 +291,5 @@ const call = async (playerid, gameid, col, path) => {
 document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick));
 document.querySelector('.creategame').addEventListener('click', createGame);
 document.querySelector('.joingame').addEventListener('click', joinGame);
+document.querySelector('.quitgame').addEventListener('click', quitGame);
+document.querySelector('.txtinput').addEventListener('click', enableButton);

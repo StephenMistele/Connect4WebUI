@@ -1,6 +1,6 @@
 body {
     font-family: "Arial", sans-serif;
-    background-color: #4f5c63;
+    background-color: #2B303A;
 }
 
 section {
@@ -9,7 +9,8 @@ section {
 
 .game--title {
     font-size: 75px;
-    color: #d7a62f;
+    /* color: #F7B32B; */
+    color: #F7B32B;
     margin: 3px auto;
 }
 
@@ -23,57 +24,69 @@ section {
     width: 637px;
     height: 548px;
     margin: 10px auto;
-    background-color: #11213a;
+    background-color: #000000;
 }
 
 .cell {
-    background-color: #a4b9b9;
+    background-color: #E1E0E0;
     height: 85px;
     width: 85px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
+    cursor: pointer;
 }
 
 
 .game--status {
     font-size: 50px;
-    color: #d7a62f;
+    color: #F7B32B;
     margin: 20px auto;
 }
 
 .creategame {
     border-radius: 5px;
-    background-color: #a4b9b9;
+    background-color: #E1E0E0;
     width: 200px;
     height: 50px;
     font-size: 25px;
     color: #11213a;
     border: 2px solid #11213a;
     cursor: pointer;
+    /* color: #d92739 */
 }
 
 .joingame {
     border-radius: 5px;
-    background-color: #a4b9b9;
+    background-color: #E1E0E0;
     width: 200px;
     height: 50px;
     font-size: 25px;
     color: #11213a;
     border: 2px solid #11213a;
     cursor: pointer;
+    opacity: .5;
 }
 
 .txtinput {
-    /* background-color: #d5d5d5;
-    border: 1px solid #11213a;
-    visibility: hidden; */
     border-radius: 5px;
-    background-color: #a4b9b9;
+    background-color: #E1E0E0;
     width: 200px;
     height: 44px;
     font-size: 25px;
     color: #11213a;
     border: 2px solid #11213a;
     text-align: center;
+}
+
+.quitgame {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+    display: none;
 }

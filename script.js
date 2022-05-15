@@ -36,8 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 var statusDisplay = document.querySelector('.game--status');
-//style ui better
-//conditional rendering on join/create buttons, and add leave game button - ensure no glitchyness when spamming
+//move timer
 var turnlen = 31;
 var myturn = false;
 var timerrunning = false;
@@ -46,10 +45,9 @@ var timer = turnlen;
 var gameactive = false;
 var playerid = "0";
 var gameid = "0";
-var red = "#e94040";
-var yellow = "#e3c934";
-var defaultcolor = "#a4b9b9";
-var renderinput = false;
+var red = "#d92739";
+var yellow = "#F7EA14";
+var defaultcolor = "#E1E0E0";
 var board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 statusDisplay.innerHTML = message;
 // Update the turn timer every 1 second
@@ -71,7 +69,7 @@ var x = setInterval(function () {
 //Handle player move
 function handleCellClick(clickedCellEvent) {
     return __awaiter(this, void 0, void 0, function () {
-        var clickedCell, clickedCellIndex, col, moveresponse;
+        var clickedCell, clickedCellIndex, col, existresponse, moveresponse;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -82,8 +80,15 @@ function handleCellClick(clickedCellEvent) {
                     clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
                     col = clickedCellIndex % 7;
                     timerrunning = false;
-                    return [4 /*yield*/, call(playerid, gameid, col, "move")];
+                    return [4 /*yield*/, call(playerid, gameid, 0, "checkturn")];
                 case 1:
+                    existresponse = _a.sent();
+                    if (existresponse[0] == -3) {
+                        gameactive = false;
+                        statusDisplay.innerHTML = "Other player resigned";
+                    }
+                    return [4 /*yield*/, call(playerid, gameid, col, "move")];
+                case 2:
                     moveresponse = _a.sent();
                     //Check if won
                     if (moveresponse[0] == "Game won") {
@@ -104,7 +109,6 @@ function handleCellClick(clickedCellEvent) {
                         message = "Error";
                         return [2 /*return*/];
                     }
-                    console.log("this is very bad");
                     myturn = false;
                     updateboard(moveresponse[2]);
                     timer = turnlen;
@@ -159,12 +163,20 @@ function waitloop() {
                     }
                     //If -2 is returned, game over
                     if (response[0] == -2) {
-                        gameactive = false;
-                        updateboard(response[1]);
-                        if (response[2] == playerid)
-                            statusDisplay.innerHTML = "Game won!";
-                        else
-                            statusDisplay.innerHTML = "Game lost";
+                        if (gameactive) {
+                            gameactive = false;
+                            updateboard(response[1]);
+                            if (response[2] == playerid)
+                                statusDisplay.innerHTML = "Other player resigned";
+                            else
+                                statusDisplay.innerHTML = "Game lost";
+                        }
+                    }
+                    if (response[0] == -3) {
+                        if (gameactive) {
+                            gameactive = false;
+                            statusDisplay.innerHTML = "Other player resigned";
+                        }
                     }
                     return [3 /*break*/, 0];
                 case 3: return [2 /*return*/];
@@ -181,6 +193,23 @@ function wipeboard() {
         item.style.backgroundColor = defaultcolor;
     }
 }
+function changebuttons(pregame) {
+    if (pregame) {
+        document.getElementById("joingame").style.display = "none";
+        document.getElementById("creategame").style.display = "none";
+        document.getElementById("txtinput").style.display = "none";
+        document.getElementById("quitgame").style.display = "initial";
+    }
+    else {
+        document.getElementById("joingame").style.display = "initial";
+        document.getElementById("joingame").style.opacity = ".5";
+        document.getElementById("creategame").style.display = "initial";
+        document.getElementById("txtinput").style.display = "initial";
+        document.getElementById("quitgame").style.display = "none";
+        statusDisplay.innerHTML = "Create or join a game";
+        document.getElementById("txtinput").value = "";
+    }
+}
 //Handle game creation
 function createGame() {
     return __awaiter(this, void 0, void 0, function () {
@@ -188,14 +217,11 @@ function createGame() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    //temp
-                    //document.getElementById("creategame").style.visibility = "hidden"
-                    //If button pressed while in game, end it
+                    //If button pressed while in game, end it SHOULDn't happen
                     if (gameactive) {
                         call(playerid, gameid, 0, "quit");
                         timerrunning = false;
                         gameactive = false;
-                        myturn = false;
                     }
                     if (!(playerid == "0")) return [3 /*break*/, 2];
                     return [4 /*yield*/, call(0, 0, 0, "generateplayerid")];
@@ -213,11 +239,13 @@ function createGame() {
                     boardresult = _a.sent();
                     //Check if creation failed
                     if (boardresult == "new game created")
-                        statusDisplay.innerHTML = "Game ID is " + gameid;
+                        statusDisplay.innerHTML = "Joined game " + gameid;
                     else
                         statusDisplay.innerHTML = "Creation failed";
                     //Reset board
+                    myturn = false;
                     wipeboard();
+                    changebuttons(true);
                     gameactive = true;
                     timer = turnlen;
                     waitloop();
@@ -233,10 +261,7 @@ function joinGame() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    //Take in gameid input - and generate player id IF playerid doesn't already exist
-                    console.log("boutta do it");
-                    input = document.getElementById("txtInput").value;
-                    console.log(input, "did it");
+                    input = document.getElementById("txtinput").value;
                     //Check if missclick
                     if (input == gameid || input == "")
                         return [2 /*return*/];
@@ -278,6 +303,7 @@ function joinGame() {
                     wipeboard();
                     gameactive = true;
                     timerrunning = true;
+                    changebuttons(true);
                     message = "Your move!";
                     timer = turnlen;
                     waitloop();
@@ -285,6 +311,23 @@ function joinGame() {
             }
         });
     });
+}
+//Called on pressing quit game button
+function quitGame() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            gameactive = false;
+            timerrunning = false;
+            call(playerid, gameid, 0, "quit");
+            gameid = "0";
+            changebuttons(false);
+            wipeboard();
+            return [2 /*return*/];
+        });
+    });
+}
+function enableButton() {
+    document.getElementById('joingame').style.opacity = "1";
 }
 //Handle API calls
 var call = function (playerid, gameid, col, path) { return __awaiter(_this, void 0, void 0, function () {
@@ -312,4 +355,6 @@ var call = function (playerid, gameid, col, path) { return __awaiter(_this, void
 document.querySelectorAll('.cell').forEach(function (cell) { return cell.addEventListener('click', handleCellClick); });
 document.querySelector('.creategame').addEventListener('click', createGame);
 document.querySelector('.joingame').addEventListener('click', joinGame);
+document.querySelector('.quitgame').addEventListener('click', quitGame);
+document.querySelector('.txtinput').addEventListener('click', enableButton);
 //# sourceMappingURL=script.js.map

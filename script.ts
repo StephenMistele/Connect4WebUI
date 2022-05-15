@@ -280,8 +280,8 @@ const call = async (playerid, gameid, col, path) => {
         "gameid": gameid,
         "col": col,
     }
-    //const res = await fetch('https://connect4-8fweza6ln-stephenmistele.vercel.app/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
-    const res = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    const res = await fetch('https://connect4-8fweza6ln-stephenmistele.vercel.app/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    // const res = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const json = await res.json();
     console.log(json[0].data)
     return json[0].data;

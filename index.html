@@ -1,66 +1,69 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Connect 4</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <section>
         <h1 class="game--title">Connect 4</h1>
         <div class="game--container">
-            <div data-cell-index="0" class="cell"></div>
-            <div data-cell-index="1" class="cell"></div>
-            <div data-cell-index="2" class="cell"></div>
-            <div data-cell-index="3" class="cell"></div>
-            <div data-cell-index="4" class="cell"></div>
-            <div data-cell-index="5" class="cell"></div>
-            <div data-cell-index="6" class="cell"></div>
-            <div data-cell-index="7" class="cell"></div>
-            <div data-cell-index="8" class="cell"></div>
-            <div data-cell-index="9" class="cell"></div>
-            <div data-cell-index="10" class="cell"></div>
-            <div data-cell-index="11" class="cell"></div>
-            <div data-cell-index="12" class="cell"></div>
-            <div data-cell-index="13" class="cell"></div>
-            <div data-cell-index="14" class="cell"></div>
-            <div data-cell-index="15" class="cell"></div>
-            <div data-cell-index="16" class="cell"></div>
-            <div data-cell-index="17" class="cell"></div>
-            <div data-cell-index="18" class="cell"></div>
-            <div data-cell-index="19" class="cell"></div>
-            <div data-cell-index="20" class="cell"></div>
-            <div data-cell-index="21" class="cell"></div>
-            <div data-cell-index="22" class="cell"></div>
-            <div data-cell-index="23" class="cell"></div>
-            <div data-cell-index="24" class="cell"></div>
-            <div data-cell-index="25" class="cell"></div>
-            <div data-cell-index="26" class="cell"></div>
-            <div data-cell-index="27" class="cell"></div>
-            <div data-cell-index="28" class="cell"></div>
-            <div data-cell-index="29" class="cell"></div>
-            <div data-cell-index="30" class="cell"></div>
-            <div data-cell-index="31" class="cell"></div>
-            <div data-cell-index="32" class="cell"></div>
-            <div data-cell-index="33" class="cell"></div>
-            <div data-cell-index="34" class="cell"></div>
-            <div data-cell-index="35" class="cell"></div>
-            <div data-cell-index="36" class="cell"></div>
-            <div data-cell-index="37" class="cell"></div>
-            <div data-cell-index="38" class="cell"></div>
-            <div data-cell-index="39" class="cell"></div>
-            <div data-cell-index="40" class="cell"></div>
-            <div data-cell-index="41" class="cell"></div>
+            <div id="0" data-cell-index="0" class="cell"></div>
+            <div id="1" data-cell-index="1" class="cell"></div>
+            <div id="2" data-cell-index="2" class="cell"></div>
+            <div id="3" data-cell-index="3" class="cell"></div>
+            <div id="4" data-cell-index="4" class="cell"></div>
+            <div id="5" data-cell-index="5" class="cell"></div>
+            <div id="6" data-cell-index="6" class="cell"></div>
+            <div id="7" data-cell-index="7" class="cell"></div>
+            <div id="8" data-cell-index="8" class="cell"></div>
+            <div id="9" data-cell-index="9" class="cell"></div>
+            <div id="10" data-cell-index="10" class="cell"></div>
+            <div id="11" data-cell-index="11" class="cell"></div>
+            <div id="12" data-cell-index="12" class="cell"></div>
+            <div id="13" data-cell-index="13" class="cell"></div>
+            <div id="14" data-cell-index="14" class="cell"></div>
+            <div id="15" data-cell-index="15" class="cell"></div>
+            <div id="16" data-cell-index="16" class="cell"></div>
+            <div id="17" data-cell-index="17" class="cell"></div>
+            <div id="18" data-cell-index="18" class="cell"></div>
+            <div id="19" data-cell-index="19" class="cell"></div>
+            <div id="20" data-cell-index="20" class="cell"></div>
+            <div id="21" data-cell-index="21" class="cell"></div>
+            <div id="22" data-cell-index="22" class="cell"></div>
+            <div id="23" data-cell-index="23" class="cell"></div>
+            <div id="24" data-cell-index="24" class="cell"></div>
+            <div id="25" data-cell-index="25" class="cell"></div>
+            <div id="26" data-cell-index="26" class="cell"></div>
+            <div id="27" data-cell-index="27" class="cell"></div>
+            <div id="28" data-cell-index="28" class="cell"></div>
+            <div id="29" data-cell-index="29" class="cell"></div>
+            <div id="30" data-cell-index="30" class="cell"></div>
+            <div id="31" data-cell-index="31" class="cell"></div>
+            <div id="32" data-cell-index="32" class="cell"></div>
+            <div id="33" data-cell-index="33" class="cell"></div>
+            <div id="34" data-cell-index="34" class="cell"></div>
+            <div id="35" data-cell-index="35" class="cell"></div>
+            <div id="36" data-cell-index="36" class="cell"></div>
+            <div id="37" data-cell-index="37" class="cell"></div>
+            <div id="38" data-cell-index="38" class="cell"></div>
+            <div id="39" data-cell-index="39" class="cell"></div>
+            <div id="40" data-cell-index="40" class="cell"></div>
+            <div id="41" data-cell-index="41" class="cell"></div>
         </div>
         <h2 class="game--status"></h2>
-        <button class="creategame">Create Game</button>
-        <input type="text" id="txtInput" placeholder="Enter a game ID">
-        <button class="joingame">Join Game</button>
+        <button id="creategame" class="creategame">Create Game</button>
+        <input type="text" id="txtInput" class="txtinput" placeholder="Enter a game ID">
+        <button id="joingame" class="joingame">Join Game</button>
     </section>
 
     <script src="script.js"></script>
 </body>
+
 </html>

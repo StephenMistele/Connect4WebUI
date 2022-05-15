@@ -1,5 +1,6 @@
 body {
     font-family: "Arial", sans-serif;
+    background-color: #4f5c63;
 }
 
 section {
@@ -7,30 +8,33 @@ section {
 }
 
 .game--title {
-    font-size: 80px;
+    font-size: 75px;
     color: #d7a62f;
-    margin: 5px auto;
+    margin: 3px auto;
 }
 
 .game--container {
-    display: grid;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
     grid-template-columns: repeat(7, auto);
-    width: 740px;
+    width: 637px;
+    height: 548px;
     margin: 10px auto;
     background-color: #11213a;
-    color: #04c0b2;
 }
 
 .cell {
-    font-family: "Permanent Marker", cursive;
-    width: 100px;
-    height: 100px;
-    box-shadow: 2px 2px 2px 2px #ecd7ba;
-    border: 2px solid #ecd7ba;
-    cursor: pointer;
-    line-height: 100px;
-    font-size: 60px;
+    background-color: #a4b9b9;
+    height: 85px;
+    width: 85px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
 }
+
 
 .game--status {
     font-size: 50px;
@@ -39,23 +43,37 @@ section {
 }
 
 .creategame {
-    background-color: #f7e4ac;
+    border-radius: 5px;
+    background-color: #a4b9b9;
     width: 200px;
     height: 50px;
     font-size: 25px;
-    color: #5586e2;
-    box-shadow: 2px 2px 2px 2px #d86c23;
-    border: 2px solid #d86c23;
+    color: #11213a;
+    border: 2px solid #11213a;
     cursor: pointer;
 }
 
 .joingame {
-    background-color: #f7e4ac;
+    border-radius: 5px;
+    background-color: #a4b9b9;
     width: 200px;
     height: 50px;
     font-size: 25px;
-    color: #5586e2;
-    box-shadow: 2px 2px 2px 2px #d86c23;
-    border: 2px solid #d86c23;
+    color: #11213a;
+    border: 2px solid #11213a;
     cursor: pointer;
+}
+
+.txtinput {
+    /* background-color: #d5d5d5;
+    border: 1px solid #11213a;
+    visibility: hidden; */
+    border-radius: 5px;
+    background-color: #a4b9b9;
+    width: 200px;
+    height: 44px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    text-align: center;
 }

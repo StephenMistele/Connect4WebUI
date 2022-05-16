@@ -23,7 +23,7 @@ let x: number = setInterval(function () {
         if (timer <= 0)
             timer++;
         timer--;
-        statusDisplay.innerHTML = message + " " + timer
+        document.getElementById("timer").innerHTML = "" + timer
         if (timer <= 0 && myturn) {
             call(playerid, gameid, 0, "quit");
             statusDisplay.innerHTML = `Game lost`;
@@ -161,6 +161,7 @@ function changebuttons(pregame: boolean) {
         document.getElementById("creategame").style.display = "none";
         document.getElementById("txtinput").style.display = "none";
         document.getElementById("quitgame").style.display = "initial";
+        document.getElementById("timer").style.display = "initial";
     }
     else {
         document.getElementById("joingame").style.display = "initial";
@@ -168,6 +169,7 @@ function changebuttons(pregame: boolean) {
         document.getElementById("creategame").style.display = "initial";
         document.getElementById("txtinput").style.display = "initial";
         document.getElementById("quitgame").style.display = "none";
+        document.getElementById("timer").style.display = "none";
         statusDisplay.innerHTML = `Create or join a game`;
         (<HTMLInputElement>document.getElementById("txtinput")).value = "";
     }

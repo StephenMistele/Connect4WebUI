@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 var statusDisplay = document.querySelector('.game--status');
-//move timer
+//remove timer flash
 var turnlen = 31;
 var myturn = false;
 var timerrunning = false;
@@ -52,13 +52,16 @@ var board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 statusDisplay.innerHTML = message;
 // Update the turn timer every 1 second
 var x = setInterval(function () {
-    if (!gameactive)
+    if (!gameactive) {
+        document.getElementById("timer").style.display = "none";
         timerrunning = false;
+    }
     if (timerrunning) {
         if (timer <= 0)
             timer++;
         timer--;
-        statusDisplay.innerHTML = message + " " + timer;
+        document.getElementById("timer").innerHTML = "Time Left: " + timer;
+        statusDisplay.innerHTML = message;
         if (timer <= 0 && myturn) {
             call(playerid, gameid, 0, "quit");
             statusDisplay.innerHTML = "Game lost";
@@ -99,7 +102,6 @@ function handleCellClick(clickedCellEvent) {
                     }
                     //Check if insert valid
                     else if (moveresponse[0] == "Bad insert") {
-                        console.log("BABABAB");
                         timerrunning = true;
                         return [2 /*return*/];
                     }
@@ -154,6 +156,7 @@ function waitloop() {
                         return [3 /*break*/, 0];
                     message = "Waiting for other player";
                     timerrunning = true;
+                    document.getElementById("timer").style.display = "initial";
                     //If updated board is returned, it's my turn
                     if (response[0] == 1) {
                         myturn = true;
@@ -206,6 +209,7 @@ function changebuttons(pregame) {
         document.getElementById("creategame").style.display = "initial";
         document.getElementById("txtinput").style.display = "initial";
         document.getElementById("quitgame").style.display = "none";
+        document.getElementById("timer").style.display = "none";
         statusDisplay.innerHTML = "Create or join a game";
         document.getElementById("txtinput").value = "";
     }
@@ -304,6 +308,7 @@ function joinGame() {
                     gameactive = true;
                     timerrunning = true;
                     changebuttons(true);
+                    document.getElementById("timer").style.display = "initial";
                     message = "Your move!";
                     timer = turnlen;
                     waitloop();
@@ -322,6 +327,7 @@ function quitGame() {
             gameid = "0";
             changebuttons(false);
             wipeboard();
+            document.getElementById("timer").style.display = "none";
             return [2 /*return*/];
         });
     });
@@ -340,7 +346,7 @@ var call = function (playerid, gameid, col, path) { return __awaiter(_this, void
                     "gameid": gameid,
                     "col": col,
                 };
-                return [4 /*yield*/, fetch('https://connect4-8fweza6ln-stephenmistele.vercel.app/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
+                return [4 /*yield*/, fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
             case 1:
                 res = _a.sent();
                 return [4 /*yield*/, res.json()];

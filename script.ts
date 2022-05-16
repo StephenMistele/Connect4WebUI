@@ -1,5 +1,5 @@
 const statusDisplay = document.querySelector('.game--status');
-//move timer
+//remove timer flash
 
 const turnlen = 31
 var myturn: boolean = false;
@@ -17,13 +17,16 @@ statusDisplay.innerHTML = message
 
 // Update the turn timer every 1 second
 let x: number = setInterval(function () {
-    if (!gameactive)
+    if (!gameactive){
+        document.getElementById("timer").style.display = "none"
         timerrunning = false;
+    }
     if (timerrunning) {
         if (timer <= 0)
             timer++;
         timer--;
-        document.getElementById("timer").innerHTML = "" + timer
+        document.getElementById("timer").innerHTML = "Time Left: " + timer
+        statusDisplay.innerHTML = message
         if (timer <= 0 && myturn) {
             call(playerid, gameid, 0, "quit");
             statusDisplay.innerHTML = `Game lost`;
@@ -64,7 +67,6 @@ async function handleCellClick(clickedCellEvent) {
 
     //Check if insert valid
     else if (moveresponse[0] == "Bad insert") {
-        console.log("BABABAB")
         timerrunning = true;
         return;
     }
@@ -113,6 +115,7 @@ async function waitloop() {
 
         message = `Waiting for other player`;
         timerrunning = true;
+        document.getElementById("timer").style.display = "initial";
 
         //If updated board is returned, it's my turn
         if (response[0] == 1) {
@@ -161,7 +164,6 @@ function changebuttons(pregame: boolean) {
         document.getElementById("creategame").style.display = "none";
         document.getElementById("txtinput").style.display = "none";
         document.getElementById("quitgame").style.display = "initial";
-        document.getElementById("timer").style.display = "initial";
     }
     else {
         document.getElementById("joingame").style.display = "initial";
@@ -256,6 +258,7 @@ async function joinGame() {
     gameactive = true;
     timerrunning = true;
     changebuttons(true);
+    document.getElementById("timer").style.display = "initial";
     message = `Your move!`;
     timer = turnlen;
     waitloop();
@@ -269,6 +272,7 @@ async function quitGame() {
     gameid = "0"
     changebuttons(false);
     wipeboard()
+    document.getElementById("timer").style.display = "none";
 }
 
 function enableButton() {

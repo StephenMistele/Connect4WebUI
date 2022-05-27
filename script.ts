@@ -1,6 +1,4 @@
 const statusDisplay = document.querySelector('.game--status');
-//remove timer flash
-
 const turnlen = 31
 var myturn: boolean = false;
 var timerrunning: boolean = false;
@@ -17,7 +15,7 @@ statusDisplay.innerHTML = message
 
 // Update the turn timer every 1 second
 let x: number = setInterval(function () {
-    if (!gameactive){
+    if (!gameactive) {
         document.getElementById("timer").style.display = "none"
         timerrunning = false;
     }
@@ -49,7 +47,7 @@ async function handleCellClick(clickedCellEvent) {
 
     //Check if other player already resigned
     let existresponse = await call(playerid, gameid, 0, "checkturn");
-    if (existresponse[0] == -3){
+    if (existresponse[0] == -3) {
         gameactive = false;
         statusDisplay.innerHTML = `Other player resigned`;
     }
@@ -109,41 +107,43 @@ async function waitloop() {
         //Check if my turn
         let response = await call(playerid, gameid, 0, "checkturn");
 
-        //No other player yet
-        if (response[0] == -1)
-            continue;
+        //Other player in game, waiting for their move -- else keep displaying gameid
+        if (response[0] != -1) {
+            //other player joined but hasn't moved yet (check is needed to prevent overflow from last game)
+            if (response[0] != -3) {
+                message = `Waiting for other player`;
+                timerrunning = true;
+                document.getElementById("timer").style.display = "initial";
+            }
 
-        message = `Waiting for other player`;
-        timerrunning = true;
-        document.getElementById("timer").style.display = "initial";
-
-        //If updated board is returned, it's my turn
-        if (response[0] == 1) {
-            myturn = true;
-            message = `Your move!`;
-            timer = turnlen;
-            updateboard(response[1]);
-        }
-
-        //If -2 is returned, game over
-        if (response[0] == -2) {
-            if (gameactive) {
-                gameactive = false;
+            //If updated board is returned, it's my turn
+            if (response[0] == 1) {
+                myturn = true;
+                message = `Your move!`;
+                timer = turnlen;
                 updateboard(response[1]);
-                if (response[2] == playerid)
-                    statusDisplay.innerHTML = `Other player resigned`;
-                else
-                    statusDisplay.innerHTML = `Game lost`;
             }
-        }
 
-        if (response[0] == -3){
-            if (gameactive) {
-                gameactive = false;
-                statusDisplay.innerHTML = `Other player resigned`;
+            //If -2 is returned, game over
+            if (response[0] == -2) {
+                if (gameactive) {
+                    gameactive = false;
+                    updateboard(response[1]);
+                    if (response[2] == playerid)
+                        statusDisplay.innerHTML = `Other player resigned`;
+                    else
+                        statusDisplay.innerHTML = `Game lost`;
+                }
             }
+
+            if (response[0] == -3) {
+                if (gameactive) {
+                    gameactive = false;
+                    statusDisplay.innerHTML = `Other player resigned`;
+                }
+            }
+            //Else not my turn, continue waiting
         }
-        //Else not my turn, continue waiting
     }
 
 }
@@ -158,7 +158,7 @@ function wipeboard() {
     }
 }
 
-function changebuttons(pregame: boolean) {
+async function changebuttons(pregame: boolean) {
     if (pregame) {
         document.getElementById("joingame").style.display = "none";
         document.getElementById("creategame").style.display = "none";
@@ -173,6 +173,7 @@ function changebuttons(pregame: boolean) {
         document.getElementById("quitgame").style.display = "none";
         document.getElementById("timer").style.display = "none";
         statusDisplay.innerHTML = `Create or join a game`;
+        message = `Create or join a game`;
         (<HTMLInputElement>document.getElementById("txtinput")).value = "";
     }
 }
@@ -196,17 +197,17 @@ async function createGame() {
     let boardresult = await call(playerid, gameid, 0, "createboard");
 
     //Check if creation failed
-    if (boardresult == "new game created")
-        statusDisplay.innerHTML = `Joined game ` + gameid;
-    else
+    if (boardresult != "new game created")
         statusDisplay.innerHTML = `Creation failed`;
 
     //Reset board
+    statusDisplay.innerHTML = `Joined game ` + gameid;
+    timerrunning = false;
+    gameactive = true;
     myturn = false;
+    timer = turnlen;
     wipeboard();
     changebuttons(true);
-    gameactive = true;
-    timer = turnlen;
     waitloop();
 }
 
@@ -254,25 +255,25 @@ async function joinGame() {
     }
 
     //Reset board
-    wipeboard();
+    message = `Your move!`;
     gameactive = true;
     timerrunning = true;
-    changebuttons(true);
-    document.getElementById("timer").style.display = "initial";
-    message = `Your move!`;
     timer = turnlen;
+    document.getElementById("timer").style.display = "initial";
+    wipeboard();
+    changebuttons(true);
     waitloop();
 }
 
 //Called on pressing quit game button
 async function quitGame() {
-    gameactive = false;
     timerrunning = false;
     call(playerid, gameid, 0, "quit");
     gameid = "0"
     changebuttons(false);
     wipeboard()
     document.getElementById("timer").style.display = "none";
+    gameactive = false;
 }
 
 function enableButton() {

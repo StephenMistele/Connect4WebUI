@@ -36,7 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 var statusDisplay = document.querySelector('.game--status');
-//remove timer flash
 var turnlen = 31;
 var myturn = false;
 var timerrunning = false;
@@ -151,35 +150,39 @@ function waitloop() {
                     return [4 /*yield*/, call(playerid, gameid, 0, "checkturn")];
                 case 2:
                     response = _a.sent();
-                    //No other player yet
-                    if (response[0] == -1)
-                        return [3 /*break*/, 0];
-                    message = "Waiting for other player";
-                    timerrunning = true;
-                    document.getElementById("timer").style.display = "initial";
-                    //If updated board is returned, it's my turn
-                    if (response[0] == 1) {
-                        myturn = true;
-                        message = "Your move!";
-                        timer = turnlen;
-                        updateboard(response[1]);
-                    }
-                    //If -2 is returned, game over
-                    if (response[0] == -2) {
-                        if (gameactive) {
-                            gameactive = false;
+                    //Other player in game, waiting for their move -- else keep displaying gameid
+                    if (response[0] != -1) {
+                        //other player joined but hasn't moved yet (check is needed to prevent overflow from last game)
+                        if (response[0] != -3) {
+                            message = "Waiting for other player";
+                            timerrunning = true;
+                            document.getElementById("timer").style.display = "initial";
+                        }
+                        //If updated board is returned, it's my turn
+                        if (response[0] == 1) {
+                            myturn = true;
+                            message = "Your move!";
+                            timer = turnlen;
                             updateboard(response[1]);
-                            if (response[2] == playerid)
+                        }
+                        //If -2 is returned, game over
+                        if (response[0] == -2) {
+                            if (gameactive) {
+                                gameactive = false;
+                                updateboard(response[1]);
+                                if (response[2] == playerid)
+                                    statusDisplay.innerHTML = "Other player resigned";
+                                else
+                                    statusDisplay.innerHTML = "Game lost";
+                            }
+                        }
+                        if (response[0] == -3) {
+                            if (gameactive) {
+                                gameactive = false;
                                 statusDisplay.innerHTML = "Other player resigned";
-                            else
-                                statusDisplay.innerHTML = "Game lost";
+                            }
                         }
-                    }
-                    if (response[0] == -3) {
-                        if (gameactive) {
-                            gameactive = false;
-                            statusDisplay.innerHTML = "Other player resigned";
-                        }
+                        //Else not my turn, continue waiting
                     }
                     return [3 /*break*/, 0];
                 case 3: return [2 /*return*/];
@@ -197,22 +200,28 @@ function wipeboard() {
     }
 }
 function changebuttons(pregame) {
-    if (pregame) {
-        document.getElementById("joingame").style.display = "none";
-        document.getElementById("creategame").style.display = "none";
-        document.getElementById("txtinput").style.display = "none";
-        document.getElementById("quitgame").style.display = "initial";
-    }
-    else {
-        document.getElementById("joingame").style.display = "initial";
-        document.getElementById("joingame").style.opacity = ".5";
-        document.getElementById("creategame").style.display = "initial";
-        document.getElementById("txtinput").style.display = "initial";
-        document.getElementById("quitgame").style.display = "none";
-        document.getElementById("timer").style.display = "none";
-        statusDisplay.innerHTML = "Create or join a game";
-        document.getElementById("txtinput").value = "";
-    }
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            if (pregame) {
+                document.getElementById("joingame").style.display = "none";
+                document.getElementById("creategame").style.display = "none";
+                document.getElementById("txtinput").style.display = "none";
+                document.getElementById("quitgame").style.display = "initial";
+            }
+            else {
+                document.getElementById("joingame").style.display = "initial";
+                document.getElementById("joingame").style.opacity = ".5";
+                document.getElementById("creategame").style.display = "initial";
+                document.getElementById("txtinput").style.display = "initial";
+                document.getElementById("quitgame").style.display = "none";
+                document.getElementById("timer").style.display = "none";
+                statusDisplay.innerHTML = "Create or join a game";
+                message = "Create or join a game";
+                document.getElementById("txtinput").value = "";
+            }
+            return [2 /*return*/];
+        });
+    });
 }
 //Handle game creation
 function createGame() {
@@ -242,16 +251,16 @@ function createGame() {
                 case 4:
                     boardresult = _a.sent();
                     //Check if creation failed
-                    if (boardresult == "new game created")
-                        statusDisplay.innerHTML = "Joined game " + gameid;
-                    else
+                    if (boardresult != "new game created")
                         statusDisplay.innerHTML = "Creation failed";
                     //Reset board
+                    statusDisplay.innerHTML = "Joined game " + gameid;
+                    timerrunning = false;
+                    gameactive = true;
                     myturn = false;
+                    timer = turnlen;
                     wipeboard();
                     changebuttons(true);
-                    gameactive = true;
-                    timer = turnlen;
                     waitloop();
                     return [2 /*return*/];
             }
@@ -304,13 +313,13 @@ function joinGame() {
                         return [2 /*return*/];
                     }
                     //Reset board
-                    wipeboard();
+                    message = "Your move!";
                     gameactive = true;
                     timerrunning = true;
-                    changebuttons(true);
-                    document.getElementById("timer").style.display = "initial";
-                    message = "Your move!";
                     timer = turnlen;
+                    document.getElementById("timer").style.display = "initial";
+                    wipeboard();
+                    changebuttons(true);
                     waitloop();
                     return [2 /*return*/];
             }
@@ -321,13 +330,13 @@ function joinGame() {
 function quitGame() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            gameactive = false;
             timerrunning = false;
             call(playerid, gameid, 0, "quit");
             gameid = "0";
             changebuttons(false);
             wipeboard();
             document.getElementById("timer").style.display = "none";
+            gameactive = false;
             return [2 /*return*/];
         });
     });

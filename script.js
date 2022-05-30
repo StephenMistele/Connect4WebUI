@@ -355,7 +355,7 @@ var call = function (playerid, gameid, col, path) { return __awaiter(_this, void
                     "gameid": gameid,
                     "col": col,
                 };
-                return [4 /*yield*/, fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
+                return [4 /*yield*/, fetch('http://159.89.145.75/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
             case 1:
                 res = _a.sent();
                 return [4 /*yield*/, res.json()];

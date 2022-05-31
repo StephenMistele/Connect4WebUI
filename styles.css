@@ -35,6 +35,8 @@ section {
     display: flex;
     justify-content: center;
     cursor: pointer;
+    font-size: 50px;
+    align-items: center;
 }
 
 

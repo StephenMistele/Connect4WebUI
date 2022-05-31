@@ -110,6 +110,7 @@ function handleCellClick(clickedCellEvent) {
                         message = "Error";
                         return [2 /*return*/];
                     }
+                    //Valid move, clean up and wait
                     myturn = false;
                     updateboard(moveresponse[2]);
                     timer = turnlen;
@@ -122,18 +123,21 @@ function handleCellClick(clickedCellEvent) {
 }
 //Handles drawing the board
 function updateboard(response) {
-    board = [].concat.apply([], response);
-    console.log(typeof (board[1]));
+    var newboard = [].concat.apply([], response);
     for (var i = 0; i < 42; i++) {
-        if (board[i] != 0) {
-            var item = document.getElementById(i.toString());
-            console.log(board, playerid);
-            if (board[i] == 1)
+        var item = document.getElementById(i.toString());
+        if (newboard[i] != board[i])
+            item.innerHTML = "X";
+        else
+            item.innerHTML = "";
+        if (newboard[i] != 0) {
+            if (newboard[i] == 1)
                 item.style.backgroundColor = red;
             else
                 item.style.backgroundColor = yellow;
         }
     }
+    board = newboard;
 }
 function waitloop() {
     return __awaiter(this, void 0, void 0, function () {
@@ -193,6 +197,7 @@ function waitloop() {
 //Resets the board
 function wipeboard() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    updateboard(board);
     var pieces = document.querySelectorAll('.cell');
     for (var i = 0; i < 42; i++) {
         var item = document.getElementById(i.toString());

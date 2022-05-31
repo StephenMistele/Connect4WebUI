@@ -75,6 +75,7 @@ async function handleCellClick(clickedCellEvent) {
         message = `Error`;
         return;
     }
+    //Valid move, clean up and wait
     myturn = false;
     updateboard(moveresponse[2]);
     timer = turnlen;
@@ -84,18 +85,21 @@ async function handleCellClick(clickedCellEvent) {
 
 //Handles drawing the board
 function updateboard(response) {
-    board = [].concat(...response);
-    console.log(typeof (board[1]))
+    let newboard: number[] = [].concat(...response);
     for (let i: number = 0; i < 42; i++) {
-        if (board[i] != 0) {
-            let item = document.getElementById(i.toString())
-            console.log(board, playerid)
-            if (board[i] == 1)
+        let item = document.getElementById(i.toString())
+            if (newboard[i] != board[i])
+                item.innerHTML = "X"
+            else
+                item.innerHTML = ""
+        if (newboard[i] != 0) {
+            if (newboard[i] == 1)
                 item.style.backgroundColor = red;
             else
                 item.style.backgroundColor = yellow;
         }
     }
+    board = newboard
 }
 
 async function waitloop() {
@@ -151,6 +155,7 @@ async function waitloop() {
 //Resets the board
 function wipeboard() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    updateboard(board)
     let pieces: NodeListOf<Element> = document.querySelectorAll('.cell');
     for (let i: number = 0; i < 42; i++) {
         let item = document.getElementById(i.toString())
@@ -287,7 +292,6 @@ const call = async (playerid, gameid, col, path) => {
         "gameid": gameid,
         "col": col,
     }
-    // const res = await fetch('https://connect4-8fweza6ln-stephenmistele.vercel.app/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     // const res = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const res = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const json = await res.json();

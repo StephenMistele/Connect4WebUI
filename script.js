@@ -36,6 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 var statusDisplay = document.querySelector('.game--status');
+var red = "#d92739";
+var yellow = "#F7EA14";
+var defaultcolor = "#E1E0E0";
 var turnlen = 31;
 var myturn = false;
 var timerrunning = false;
@@ -44,190 +47,8 @@ var timer = turnlen;
 var gameactive = false;
 var playerid = "0";
 var gameid = "0";
-var red = "#d92739";
-var yellow = "#F7EA14";
-var defaultcolor = "#E1E0E0";
 var board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 statusDisplay.innerHTML = message;
-// Update the turn timer every 1 second
-var x = setInterval(function () {
-    if (!gameactive) {
-        document.getElementById("timer").style.display = "none";
-        timerrunning = false;
-    }
-    if (timerrunning) {
-        if (timer <= 0)
-            timer++;
-        timer--;
-        document.getElementById("timer").innerHTML = "Time Left: " + timer;
-        statusDisplay.innerHTML = message;
-        if (timer <= 0 && myturn) {
-            call(playerid, gameid, 0, "quit");
-            statusDisplay.innerHTML = "Game lost";
-            gameactive = false;
-        }
-    }
-}, 1000);
-//Handle player move
-function handleCellClick(clickedCellEvent) {
-    return __awaiter(this, void 0, void 0, function () {
-        var clickedCell, clickedCellIndex, col, existresponse, moveresponse;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    //Don't do anything if either game hasn't started yet, or game just ended, or if not my turn
-                    if (!gameactive || !myturn)
-                        return [2 /*return*/];
-                    clickedCell = clickedCellEvent.target;
-                    clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
-                    col = clickedCellIndex % 7;
-                    timerrunning = false;
-                    return [4 /*yield*/, call(playerid, gameid, 0, "checkturn")];
-                case 1:
-                    existresponse = _a.sent();
-                    if (existresponse[0] == -3) {
-                        gameactive = false;
-                        statusDisplay.innerHTML = "Other player resigned";
-                    }
-                    return [4 /*yield*/, call(playerid, gameid, col, "move")];
-                case 2:
-                    moveresponse = _a.sent();
-                    //Check if won
-                    if (moveresponse[0] == "Game won") {
-                        gameactive = false;
-                        statusDisplay.innerHTML = "Game won!";
-                        updateboard(moveresponse[2]);
-                        return [2 /*return*/];
-                    }
-                    //Check if insert valid
-                    else if (moveresponse[0] == "Bad insert") {
-                        timerrunning = true;
-                        return [2 /*return*/];
-                    }
-                    //This shouldn't happen
-                    else if (moveresponse[0] == "Not your turn") {
-                        timerrunning = true;
-                        message = "Error";
-                        return [2 /*return*/];
-                    }
-                    //Valid move, clean up and wait
-                    myturn = false;
-                    updateboard(moveresponse[2]);
-                    timer = turnlen;
-                    timerrunning = true;
-                    waitloop();
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-//Handles drawing the board
-function updateboard(response) {
-    var newboard = [].concat.apply([], response);
-    for (var i = 0; i < 42; i++) {
-        var item = document.getElementById(i.toString());
-        if (newboard[i] != board[i])
-            item.innerHTML = "X";
-        else
-            item.innerHTML = "";
-        if (newboard[i] != 0) {
-            if (newboard[i] == 1)
-                item.style.backgroundColor = red;
-            else
-                item.style.backgroundColor = yellow;
-        }
-    }
-    board = newboard;
-}
-function waitloop() {
-    return __awaiter(this, void 0, void 0, function () {
-        var response;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!(!myturn && gameactive)) return [3 /*break*/, 3];
-                    //Wait 1 second
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 500); })];
-                case 1:
-                    //Wait 1 second
-                    _a.sent();
-                    return [4 /*yield*/, call(playerid, gameid, 0, "checkturn")];
-                case 2:
-                    response = _a.sent();
-                    //Other player in game, waiting for their move -- else keep displaying gameid
-                    if (response[0] != -1) {
-                        //other player joined but hasn't moved yet (check is needed to prevent overflow from last game)
-                        if (response[0] != -3) {
-                            message = "Waiting for other player";
-                            timerrunning = true;
-                            document.getElementById("timer").style.display = "initial";
-                        }
-                        //If updated board is returned, it's my turn
-                        if (response[0] == 1) {
-                            myturn = true;
-                            message = "Your move!";
-                            timer = turnlen;
-                            updateboard(response[1]);
-                        }
-                        //If -2 is returned, game over
-                        if (response[0] == -2) {
-                            if (gameactive) {
-                                gameactive = false;
-                                updateboard(response[1]);
-                                if (response[2] == playerid)
-                                    statusDisplay.innerHTML = "Other player resigned";
-                                else
-                                    statusDisplay.innerHTML = "Game lost";
-                            }
-                        }
-                        if (response[0] == -3) {
-                            if (gameactive) {
-                                gameactive = false;
-                                statusDisplay.innerHTML = "Other player resigned";
-                            }
-                        }
-                        //Else not my turn, continue waiting
-                    }
-                    return [3 /*break*/, 0];
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-//Resets the board
-function wipeboard() {
-    board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    updateboard(board);
-    var pieces = document.querySelectorAll('.cell');
-    for (var i = 0; i < 42; i++) {
-        var item = document.getElementById(i.toString());
-        item.style.backgroundColor = defaultcolor;
-    }
-}
-function changebuttons(pregame) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            if (pregame) {
-                document.getElementById("joingame").style.display = "none";
-                document.getElementById("creategame").style.display = "none";
-                document.getElementById("txtinput").style.display = "none";
-                document.getElementById("quitgame").style.display = "initial";
-            }
-            else {
-                document.getElementById("joingame").style.display = "initial";
-                document.getElementById("joingame").style.opacity = ".5";
-                document.getElementById("creategame").style.display = "initial";
-                document.getElementById("txtinput").style.display = "initial";
-                document.getElementById("quitgame").style.display = "none";
-                document.getElementById("timer").style.display = "none";
-                statusDisplay.innerHTML = "Create or join a game";
-                message = "Create or join a game";
-                document.getElementById("txtinput").value = "";
-            }
-            return [2 /*return*/];
-        });
-    });
-}
 //Handle game creation
 function createGame() {
     return __awaiter(this, void 0, void 0, function () {
@@ -331,7 +152,7 @@ function joinGame() {
         });
     });
 }
-//Called on pressing quit game button
+//Handle quiting game 
 function quitGame() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -346,6 +167,188 @@ function quitGame() {
         });
     });
 }
+//Handle player move
+function handleCellClick(clickedCellEvent) {
+    return __awaiter(this, void 0, void 0, function () {
+        var clickedCell, col, existresponse, moveresponse;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    //Don't do anything if either game hasn't started yet, or game just ended, or if not my turn
+                    if (!gameactive || !myturn)
+                        return [2 /*return*/];
+                    clickedCell = clickedCellEvent.target;
+                    col = parseInt(clickedCell.getAttribute('data-cell-index')) % 7;
+                    timerrunning = false;
+                    return [4 /*yield*/, call(playerid, gameid, 0, "checkturn")];
+                case 1:
+                    existresponse = _a.sent();
+                    if (existresponse[0] == -3) {
+                        gameactive = false;
+                        statusDisplay.innerHTML = "Other player resigned";
+                    }
+                    return [4 /*yield*/, call(playerid, gameid, col, "move")];
+                case 2:
+                    moveresponse = _a.sent();
+                    //Check if won
+                    if (moveresponse[0] == "Game won") {
+                        gameactive = false;
+                        statusDisplay.innerHTML = "Game won!";
+                        updateboard(moveresponse[2]);
+                        return [2 /*return*/];
+                    }
+                    //Check if insert valid
+                    else if (moveresponse[0] == "Bad insert") {
+                        timerrunning = true;
+                        return [2 /*return*/];
+                    }
+                    //This shouldn't happen
+                    else if (moveresponse[0] == "Not your turn") {
+                        timerrunning = true;
+                        message = "Error";
+                        return [2 /*return*/];
+                    }
+                    //Valid move, clean up and wait
+                    myturn = false;
+                    updateboard(moveresponse[2]);
+                    timer = turnlen;
+                    timerrunning = true;
+                    waitloop();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+//This will run when it is not your turn
+function waitloop() {
+    return __awaiter(this, void 0, void 0, function () {
+        var response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!(!myturn && gameactive)) return [3 /*break*/, 3];
+                    //Wait half a second
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 500); })];
+                case 1:
+                    //Wait half a second
+                    _a.sent();
+                    return [4 /*yield*/, call(playerid, gameid, 0, "checkturn")];
+                case 2:
+                    response = _a.sent();
+                    //Other player in game, display waiting for their move -- else keep displaying gameid
+                    if (response[0] != -1) {
+                        //other player joined but hasn't moved yet (check is needed to prevent overflow from last game)
+                        if (response[0] != -3) {
+                            message = "Waiting for other player";
+                            timerrunning = true;
+                            document.getElementById("timer").style.display = "initial";
+                        }
+                        //If updated board is returned, it's my turn
+                        if (response[0] == 1) {
+                            myturn = true;
+                            message = "Your move!";
+                            timer = turnlen;
+                            updateboard(response[1]);
+                        }
+                        //If -2 is returned, game over
+                        if (response[0] == -2) {
+                            if (gameactive) {
+                                gameactive = false;
+                                updateboard(response[1]);
+                                if (response[2] == playerid)
+                                    statusDisplay.innerHTML = "Other player resigned";
+                                else
+                                    statusDisplay.innerHTML = "Game lost";
+                            }
+                        }
+                        if (response[0] == -3) {
+                            if (gameactive) {
+                                gameactive = false;
+                                statusDisplay.innerHTML = "Other player resigned";
+                            }
+                        }
+                        //Else not my turn, continue waiting
+                    }
+                    return [3 /*break*/, 0];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+// Update the turn timer every 1 second
+var x = setInterval(function () {
+    if (!gameactive) {
+        document.getElementById("timer").style.display = "none";
+        timerrunning = false;
+    }
+    if (timerrunning) {
+        if (timer <= 0)
+            timer++;
+        timer--;
+        document.getElementById("timer").innerHTML = "Time Left: " + timer;
+        statusDisplay.innerHTML = message;
+        if (timer <= 0 && myturn) {
+            call(playerid, gameid, 0, "quit");
+            statusDisplay.innerHTML = "Game lost";
+            gameactive = false;
+        }
+    }
+}, 1000);
+//Handles drawing the board
+function updateboard(response) {
+    var newboard = [].concat.apply([], response);
+    for (var i = 0; i < 42; i++) {
+        var item = document.getElementById(i.toString());
+        if (newboard[i] != board[i])
+            item.innerHTML = "X";
+        else
+            item.innerHTML = "";
+        if (newboard[i] != 0) {
+            if (newboard[i] == 1)
+                item.style.backgroundColor = red;
+            else
+                item.style.backgroundColor = yellow;
+        }
+    }
+    board = newboard;
+}
+//Resets the board
+function wipeboard() {
+    board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    updateboard(board);
+    for (var i = 0; i < 42; i++) {
+        var item = document.getElementById(i.toString());
+        item.style.backgroundColor = defaultcolor;
+    }
+}
+//When game joined/left, handle the changes to html elements
+function changebuttons(startinggame) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            //Joining game, hide join/create buttons and input field, and show quit game button
+            if (startinggame) {
+                document.getElementById("joingame").style.display = "none";
+                document.getElementById("creategame").style.display = "none";
+                document.getElementById("txtinput").style.display = "none";
+                document.getElementById("quitgame").style.display = "initial";
+            }
+            //Ending game, reverse earlier changes ^ and reset game status text
+            else {
+                document.getElementById("joingame").style.display = "initial";
+                document.getElementById("joingame").style.opacity = ".5";
+                document.getElementById("creategame").style.display = "initial";
+                document.getElementById("txtinput").style.display = "initial";
+                document.getElementById("quitgame").style.display = "none";
+                document.getElementById("timer").style.display = "none";
+                statusDisplay.innerHTML = "Create or join a game";
+                message = "Create or join a game";
+                document.getElementById("txtinput").value = "";
+            }
+            return [2 /*return*/];
+        });
+    });
+}
+//Greys out joingame button when nothing in input field
 function enableButton() {
     document.getElementById('joingame').style.opacity = "1";
 }
@@ -366,7 +369,6 @@ var call = function (playerid, gameid, col, path) { return __awaiter(_this, void
                 return [4 /*yield*/, res.json()];
             case 2:
                 json = _a.sent();
-                console.log(json[0].data);
                 return [2 /*return*/, json[0].data];
         }
     });

@@ -1,5 +1,8 @@
 const statusDisplay = document.querySelector('.game--status');
-const turnlen = 31
+const red: string = "#d92739";
+const yellow: string = "#F7EA14";
+const defaultcolor: string = "#E1E0E0";
+const turnlen: number = 31
 var myturn: boolean = false;
 var timerrunning: boolean = false;
 var message: string = "Create or join a game";
@@ -7,31 +10,106 @@ var timer = turnlen
 var gameactive: boolean = false;
 var playerid: string = "0";
 var gameid: string = "0";
-var red: string = "#d92739";
-var yellow: string = "#F7EA14";
-var defaultcolor: string = "#E1E0E0";
 var board: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 statusDisplay.innerHTML = message
 
-// Update the turn timer every 1 second
-let x: number = setInterval(function () {
-    if (!gameactive) {
-        document.getElementById("timer").style.display = "none"
+//Handle game creation
+async function createGame() {
+    //If button pressed while in game, end it SHOULDn't happen
+    if (gameactive) {
+        call(playerid, gameid, 0, "quit");
         timerrunning = false;
+        gameactive = false;
     }
-    if (timerrunning) {
-        if (timer <= 0)
-            timer++;
-        timer--;
-        document.getElementById("timer").innerHTML = "Time Left: " + timer
-        statusDisplay.innerHTML = message
-        if (timer <= 0 && myturn) {
-            call(playerid, gameid, 0, "quit");
-            statusDisplay.innerHTML = `Game lost`;
-            gameactive = false;
-        }
+    //Generate new game ID - and new player id IF playerid doesn't already exist
+    if (playerid == "0")
+        playerid = await call(0, 0, 0, "generateplayerid");
+    playerid = String(playerid);
+    gameid = await call(playerid, 0, 0, "generategameid");
+    gameid = String(gameid);
+
+    //Create board
+    let boardresult: string = await call(playerid, gameid, 0, "createboard");
+
+    //Check if creation failed
+    if (boardresult != "new game created")
+        statusDisplay.innerHTML = `Creation failed`;
+
+    //Reset board
+    statusDisplay.innerHTML = `Joined game ` + gameid;
+    timerrunning = false;
+    gameactive = true;
+    myturn = false;
+    timer = turnlen;
+    wipeboard();
+    changebuttons(true);
+    waitloop();
+}
+
+//Handle joining game
+async function joinGame() {
+    //Take in gameid input - and generate player id IF playerid doesn't already exist
+    let input: string = (<HTMLInputElement>document.getElementById("txtinput")).value;
+
+    //Check if missclick
+    if (input == gameid || input == "")
+        return;
+
+    //if no playerid yet, make new one
+    if (playerid == "0") {
+        playerid = await call(0, 0, 0, "generateplayerid");
     }
-}, 1000);
+
+    playerid = String(playerid);
+    input = String(input);
+
+    //Check if board already exists
+    let gameexists: any[] = await call(playerid, input, 0, "checkturn")
+    if (gameexists[0] == -3) {
+        statusDisplay.innerHTML = `Game doesn't exist`;
+        return;
+    }
+
+    //Join board
+    gameid = input;
+    let boardresult: string = await call(playerid, gameid, 0, "createboard");
+
+    //Handle if board join failed
+    if (boardresult == "game joined")
+        myturn = true;
+    else if (boardresult == "game full") {
+        statusDisplay.innerHTML = `Game full`;
+        return;
+    }
+    else if (boardresult == "already in game") {
+        return;
+    }
+    else {
+        statusDisplay.innerHTML = `Join failed`;
+        return;
+    }
+
+    //Reset board
+    message = `Your move!`;
+    gameactive = true;
+    timerrunning = true;
+    timer = turnlen;
+    document.getElementById("timer").style.display = "initial";
+    wipeboard();
+    changebuttons(true);
+    waitloop();
+}
+
+//Handle quiting game 
+async function quitGame() {
+    timerrunning = false;
+    call(playerid, gameid, 0, "quit");
+    gameid = "0"
+    changebuttons(false);
+    wipeboard()
+    document.getElementById("timer").style.display = "none";
+    gameactive = false;
+}
 
 //Handle player move
 async function handleCellClick(clickedCellEvent) {
@@ -41,19 +119,18 @@ async function handleCellClick(clickedCellEvent) {
 
     //Parse column from click
     const clickedCell = clickedCellEvent.target;
-    const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
-    let col: number = clickedCellIndex % 7;
+    let col: number = parseInt(clickedCell.getAttribute('data-cell-index')) % 7;
     timerrunning = false;
 
     //Check if other player already resigned
-    let existresponse = await call(playerid, gameid, 0, "checkturn");
+    let existresponse: any[] = await call(playerid, gameid, 0, "checkturn");
     if (existresponse[0] == -3) {
         gameactive = false;
         statusDisplay.innerHTML = `Other player resigned`;
     }
 
     //Post move request to server
-    let moveresponse = await call(playerid, gameid, col, "move");
+    let moveresponse: any[] = await call(playerid, gameid, col, "move");
 
     //Check if won
     if (moveresponse[0] == "Game won") {
@@ -83,35 +160,16 @@ async function handleCellClick(clickedCellEvent) {
     waitloop();
 }
 
-//Handles drawing the board
-function updateboard(response) {
-    let newboard: number[] = [].concat(...response);
-    for (let i: number = 0; i < 42; i++) {
-        let item = document.getElementById(i.toString())
-            if (newboard[i] != board[i])
-                item.innerHTML = "X"
-            else
-                item.innerHTML = ""
-        if (newboard[i] != 0) {
-            if (newboard[i] == 1)
-                item.style.backgroundColor = red;
-            else
-                item.style.backgroundColor = yellow;
-        }
-    }
-    board = newboard
-}
-
+//This will run when it is not your turn
 async function waitloop() {
-    //This will run when it is not your turn
     while (!myturn && gameactive) {
-        //Wait 1 second
+        //Wait half a second
         await new Promise(resolve => setTimeout(resolve, 500));
 
         //Check if my turn
-        let response = await call(playerid, gameid, 0, "checkturn");
+        let response: any[] = await call(playerid, gameid, 0, "checkturn");
 
-        //Other player in game, waiting for their move -- else keep displaying gameid
+        //Other player in game, display waiting for their move -- else keep displaying gameid
         if (response[0] != -1) {
             //other player joined but hasn't moved yet (check is needed to prevent overflow from last game)
             if (response[0] != -3) {
@@ -149,27 +207,67 @@ async function waitloop() {
             //Else not my turn, continue waiting
         }
     }
+}
 
+// Update the turn timer every 1 second
+let x: number = setInterval(function () {
+    if (!gameactive) {
+        document.getElementById("timer").style.display = "none"
+        timerrunning = false;
+    }
+    if (timerrunning) {
+        if (timer <= 0)
+            timer++;
+        timer--;
+        document.getElementById("timer").innerHTML = "Time Left: " + timer
+        statusDisplay.innerHTML = message
+        if (timer <= 0 && myturn) {
+            call(playerid, gameid, 0, "quit");
+            statusDisplay.innerHTML = `Game lost`;
+            gameactive = false;
+        }
+    }
+}, 1000);
+
+//Handles drawing the board
+function updateboard(response) {
+    let newboard: number[] = [].concat(...response);
+    for (let i: number = 0; i < 42; i++) {
+        let item: HTMLElement = document.getElementById(i.toString())
+            if (newboard[i] != board[i])
+                item.innerHTML = "X"
+            else
+                item.innerHTML = ""
+        if (newboard[i] != 0) {
+            if (newboard[i] == 1)
+                item.style.backgroundColor = red;
+            else
+                item.style.backgroundColor = yellow;
+        }
+    }
+    board = newboard
 }
 
 //Resets the board
 function wipeboard() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     updateboard(board)
-    let pieces: NodeListOf<Element> = document.querySelectorAll('.cell');
     for (let i: number = 0; i < 42; i++) {
         let item = document.getElementById(i.toString())
         item.style.backgroundColor = defaultcolor
     }
 }
 
-async function changebuttons(pregame: boolean) {
-    if (pregame) {
+//When game joined/left, handle the changes to html elements
+async function changebuttons(startinggame: boolean) {
+    //Joining game, hide join/create buttons and input field, and show quit game button
+    if (startinggame) {
         document.getElementById("joingame").style.display = "none";
         document.getElementById("creategame").style.display = "none";
         document.getElementById("txtinput").style.display = "none";
         document.getElementById("quitgame").style.display = "initial";
     }
+    //Ending game, reverse earlier changes ^ and reset game status text
     else {
         document.getElementById("joingame").style.display = "initial";
         document.getElementById("joingame").style.opacity = ".5";
@@ -183,104 +281,7 @@ async function changebuttons(pregame: boolean) {
     }
 }
 
-//Handle game creation
-async function createGame() {
-    //If button pressed while in game, end it SHOULDn't happen
-    if (gameactive) {
-        call(playerid, gameid, 0, "quit");
-        timerrunning = false;
-        gameactive = false;
-    }
-    //Generate new game ID - and new player id IF playerid doesn't already exist
-    if (playerid == "0")
-        playerid = await call(0, 0, 0, "generateplayerid");
-    playerid = String(playerid);
-    gameid = await call(playerid, 0, 0, "generategameid");
-    gameid = String(gameid);
-
-    //Create board
-    let boardresult = await call(playerid, gameid, 0, "createboard");
-
-    //Check if creation failed
-    if (boardresult != "new game created")
-        statusDisplay.innerHTML = `Creation failed`;
-
-    //Reset board
-    statusDisplay.innerHTML = `Joined game ` + gameid;
-    timerrunning = false;
-    gameactive = true;
-    myturn = false;
-    timer = turnlen;
-    wipeboard();
-    changebuttons(true);
-    waitloop();
-}
-
-//Handle joining game
-async function joinGame() {
-    //Take in gameid input - and generate player id IF playerid doesn't already exist
-    let input: string = (<HTMLInputElement>document.getElementById("txtinput")).value;
-
-    //Check if missclick
-    if (input == gameid || input == "")
-        return;
-
-    //if no playerid yet, make new one
-    if (playerid == "0") {
-        playerid = await call(0, 0, 0, "generateplayerid");
-    }
-
-    playerid = String(playerid);
-    input = String(input);
-
-    //Check if board already exists
-    let gameexists = await call(playerid, input, 0, "checkturn")
-    if (gameexists[0] == -3) {
-        statusDisplay.innerHTML = `Game doesn't exist`;
-        return;
-    }
-
-    //Join board
-    gameid = input;
-    let boardresult = await call(playerid, gameid, 0, "createboard");
-
-    //Handle if board join failed
-    if (boardresult == "game joined")
-        myturn = true;
-    else if (boardresult == "game full") {
-        statusDisplay.innerHTML = `Game full`;
-        return;
-    }
-    else if (boardresult == "already in game") {
-        return;
-    }
-    else {
-        statusDisplay.innerHTML = `Join failed`;
-        return;
-    }
-
-    //Reset board
-    message = `Your move!`;
-    gameactive = true;
-    timerrunning = true;
-    timer = turnlen;
-    document.getElementById("timer").style.display = "initial";
-    wipeboard();
-    changebuttons(true);
-    waitloop();
-}
-
-//Called on pressing quit game button
-async function quitGame() {
-    timerrunning = false;
-    call(playerid, gameid, 0, "quit");
-    gameid = "0"
-    changebuttons(false);
-    wipeboard()
-    document.getElementById("timer").style.display = "none";
-    gameactive = false;
-}
-
+//Greys out joingame button when nothing in input field
 function enableButton() {
     document.getElementById('joingame').style.opacity = "1";
 }
@@ -293,9 +294,8 @@ const call = async (playerid, gameid, col, path) => {
         "col": col,
     }
     // const res = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
-    const res = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    const res: Response = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const json = await res.json();
-    console.log(json[0].data)
     return json[0].data;
 }
 

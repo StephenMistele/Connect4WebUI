@@ -9,7 +9,6 @@ section {
 
 .game--title {
     font-size: 75px;
-    /* color: #F7B32B; */
     color: #F7B32B;
     margin: 3px auto;
 }
@@ -55,7 +54,6 @@ section {
     color: #11213a;
     border: 2px solid #11213a;
     cursor: pointer;
-    /* color: #d92739 */
 }
 
 .joingame {
@@ -73,7 +71,7 @@ section {
 .txtinput {
     border-radius: 5px;
     background-color: #E1E0E0;
-    width: 200px;
+    width: 192px;
     height: 44px;
     font-size: 25px;
     color: #11213a;

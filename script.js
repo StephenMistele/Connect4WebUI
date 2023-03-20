@@ -989,8 +989,7 @@ var call = function (playerid, gameid, col, path) { return __awaiter(_this, void
                     "gameid": gameid,
                     "col": col,
                 };
-                console.log('http://localhost:3000/' + path);
-                return [4 /*yield*/, fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
+                return [4 /*yield*/, fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
             case 1:
                 res = _a.sent();
                 return [4 /*yield*/, res.json()];

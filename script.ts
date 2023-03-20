@@ -910,9 +910,9 @@ const call = async (playerid, gameid, col, path) => {
         "gameid": gameid,
         "col": col,
     }
-    console.log('http://localhost:3000/' + path)
-    const res: Response = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
-    // const res: Response = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    // console.log('http://localhost:3000/' + path)
+    // const res: Response = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    const res: Response = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const json = await res.json();
     return json[0].data;
 }

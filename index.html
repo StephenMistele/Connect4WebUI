@@ -3,8 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, user-scalable=yes, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Connect 4</title>
     <link rel="stylesheet" href="styles.css">
@@ -13,7 +12,7 @@
 <body>
     <section>
         <h1 class="game--title">Connect 4</h1>
-        <div class="game--container">
+        <div id="board" class="game--container">
             <div id="0" data-cell-index="0" class="cell"></div>
             <div id="1" data-cell-index="1" class="cell"></div>
             <div id="2" data-cell-index="2" class="cell"></div>
@@ -58,12 +57,28 @@
             <div id="41" data-cell-index="41" class="cell"></div>
         </div>
         <h2 class="game--status"></h2>
+        <button id="login" class="login">Login</button>
+        <button id="continueguest" class="continueguest">Continue as Guest</button>
+        <button id="createaccount" class="createaccount">Create Account</button>
+        <input type="text" id="usernameinput" class="txtinput" placeholder="username">
+        <input type="password" id="passwordinput" class="txtinput" placeholder="password">
+        <button id="authsubmit" class="authsubmit">Submit</button>
+        <button id="back" class="back">Back</button>
+        <button id="singleplayer" class="singleplayer">Play AI</button>
+        <button id="matchmake" class="matchmake">Matchmake</button>
+        <button id="privatematch" class="privatematch">Private Match</button>
         <button id="creategame" class="creategame">Create Game</button>
         <input type="text" id="txtinput" class="txtinput" placeholder="Enter a game ID">
         <button id="joingame" class="joingame">Join Game</button>
         <button id="quitgame" class="quitgame">Quit Game</button>
         <button id="timer" class="timer">Timer</button>
+        <button id="mainmenu" class="mainmenu">Main Menu</button>
+        <div>
+            <h4 id="scores" class="scores"></h4>
+            <h4 id="winpercent" class="scores"></h4>
+        </div>
     </section>
     <script src="script.js"></script>
 </body>
+
 </html>

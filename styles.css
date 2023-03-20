@@ -45,6 +45,56 @@ section {
     margin: 20px auto;
 }
 
+.scores {
+    font-size: 25px;
+    color: #F7B32B;
+    margin: 20px auto;
+}
+
+.mainmenu {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.singleplayer {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.matchmake {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.privatematch {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
 .creategame {
     border-radius: 5px;
     background-color: #E1E0E0;
@@ -88,7 +138,6 @@ section {
     color: #11213a;
     border: 2px solid #11213a;
     cursor: pointer;
-    display: none;
 }
 
 .timer {
@@ -99,5 +148,59 @@ section {
     font-size: 25px;
     color: #11213a;
     border: 2px solid #11213a;
-    display: none;
+}
+
+.continueguest {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 250px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.login {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.createaccount {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.authsubmit {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.back {
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
 }

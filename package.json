@@ -17,5 +17,6 @@
   },
   "homepage": "https://github.com/StephenMistele/Connect4WebUI#readme",
   "dependencies": {
+    "typescript": "^4.9.3"
   }
 }

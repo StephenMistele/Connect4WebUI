@@ -912,7 +912,7 @@ const call = async (playerid, gameid, col, path) => {
     }
     // console.log('http://localhost:3000/' + path)
     // const res: Response = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
-    const res: Response = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    const res: Response = await fetch('159.89.145.75/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const json = await res.json();
     return json[0].data;
 }

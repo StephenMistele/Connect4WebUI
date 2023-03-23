@@ -58,7 +58,29 @@ var gamesplayed = 0;
 var pinging = false;
 var multiplayer = true;
 var aiMovenumber = 0;
+var username = "";
+var password = "";
 changebuttons();
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
 //Handle game creation
 function createGame() {
     return __awaiter(this, void 0, void 0, function () {
@@ -372,7 +394,7 @@ function waitForAIMove(slot) {
         move = getTopSlot(3);
         var newboard = board;
         newboard[move] = 1;
-        updateboard(newboard);
+        updateboard(newboard, true);
     }
     else if (aiMovenumber == 1) {
         if (slot == 39)
@@ -381,16 +403,15 @@ function waitForAIMove(slot) {
             move = getTopSlot(4);
         var newboard = board;
         newboard[move] = 1;
-        updateboard(newboard);
+        updateboard(newboard, true);
     }
     else {
         var AIPlayedCol = getAIMove(getSplitBoard(board));
         move = getTopSlot(AIPlayedCol);
         var newboard = board;
         newboard[move] = 1;
-        updateboard(newboard);
+        updateboard(newboard, true);
         //Check if won
-        // console.log("checking for AI win", "col = ", AIPlayedCol, "row = ", getTopEmptyRowInSplitBoard(getSplitBoard(board), AIPlayedCol) + 1, board);
         if (checkWin(1, AIPlayedCol, getTopEmptyRowInSplitBoard(getSplitBoard(board), AIPlayedCol) + 1, getSplitBoard(board))) {
             gameactive = false;
             statusDisplay.innerHTML = "Game lost";
@@ -410,9 +431,8 @@ function handleSingleplayerMove(col) {
         return;
     var newboard = board;
     newboard[slot] = 2;
-    updateboard(newboard);
+    updateboard(newboard, false);
     //Check if won
-    // console.log("checking for human win", "col = ", slot % 7, "row = ", getTopEmptyRowInSplitBoard(getSplitBoard(board), slot % 7) + 1, board);
     if (checkWin(2, slot % 7, getTopEmptyRowInSplitBoard(getSplitBoard(board), slot % 7) + 1, getSplitBoard(board))) {
         gameactive = false;
         statusDisplay.innerHTML = "Game won!";
@@ -449,7 +469,7 @@ function handleMultiplayerMove(col) {
                         gameswon++;
                         gameactive = false;
                         statusDisplay.innerHTML = "Game won!";
-                        updateboard(moveresponse[2]);
+                        updateboard(moveresponse[2], false);
                         gamestate = "gameover";
                         changebuttons();
                         return [2 /*return*/];
@@ -467,7 +487,7 @@ function handleMultiplayerMove(col) {
                     }
                     //Valid move, clean up and wait
                     myturn = false;
-                    updateboard(moveresponse[2]);
+                    updateboard(moveresponse[2], false);
                     timer = turnlen;
                     timerrunning = true;
                     waitloop();
@@ -507,13 +527,13 @@ function waitloop() {
                             myturn = true;
                             message = "Your move!";
                             timer = turnlen;
-                            updateboard(response[1]);
+                            updateboard(response[1], true);
                         }
                         //If -2 is returned, game over
                         if (response[0] == -2) {
                             if (gameactive) {
                                 gameactive = false;
-                                updateboard(response[1]);
+                                updateboard(response[1], true);
                                 gamestate = "gameover";
                                 changebuttons();
                                 if (response[2] == playerid) {
@@ -569,11 +589,11 @@ setInterval(function () {
     }
 }, 1000);
 //Handles drawing the board
-function updateboard(response) {
+function updateboard(response, drawX) {
     var newboard = [].concat.apply([], response);
     for (var i = 0; i < 42; i++) {
         var item = document.getElementById(i.toString());
-        if (newboard[i] != board[i])
+        if (newboard[i] != board[i] && drawX)
             item.innerHTML = "X";
         else
             item.innerHTML = "";
@@ -589,7 +609,7 @@ function updateboard(response) {
 //Resets the board
 function wipeboard() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    updateboard(board);
+    updateboard(board, false);
     for (var i = 0; i < 42; i++) {
         var item = document.getElementById(i.toString());
         item.style.backgroundColor = defaultcolor;
@@ -600,13 +620,20 @@ function changebuttons() {
     return __awaiter(this, void 0, void 0, function () {
         var winratio;
         return __generator(this, function (_a) {
+            document.getElementById("logout").style.display = "none";
             if (loggedin == true) {
+                document.getElementById("account").style.display = "initial";
+                document.getElementById("account").innerHTML = username;
                 winratio = void 0;
                 if (gamesplayed != 0) {
                     winratio = Math.floor(gameswon / gamesplayed * 100);
                     (document.getElementById("winpercent")).innerHTML = "Win Rate: " + winratio + "%";
                 }
                 (document.getElementById("scores")).innerHTML = "Online Games Played: " + gamesplayed;
+            }
+            else {
+                document.getElementById("account").style.display = "initial";
+                document.getElementById("account").innerHTML = "Guest";
             }
             if (gamestate == "gameover") {
                 document.getElementById("joingame").style.display = "none";
@@ -645,6 +672,8 @@ function changebuttons() {
                 document.getElementById("passwordinput").style.display = "none";
                 document.getElementById("authsubmit").style.display = "none";
                 document.getElementById("back").style.display = "none";
+                document.getElementById("account").style.display = "none";
+                document.getElementById("logout").style.display = "none";
                 statusDisplay.innerHTML = "Login, Sign up, or Don't";
                 document.getElementById("usernameinput").value = "";
                 document.getElementById("passwordinput").value = "";
@@ -667,9 +696,12 @@ function changebuttons() {
                 document.getElementById("passwordinput").style.display = "initial";
                 document.getElementById("authsubmit").style.display = "initial";
                 document.getElementById("back").style.display = "initial";
+                document.getElementById("account").style.display = "none";
+                document.getElementById("logout").style.display = "none";
                 statusDisplay.innerHTML = "Enter a Username & Password";
                 document.getElementById("usernameinput").value = "";
                 document.getElementById("passwordinput").value = "";
+                document.getElementById("usernameinput").focus();
             }
             else if (gamestate == "waitinglobby") {
                 document.getElementById("joingame").style.display = "none";
@@ -771,6 +803,7 @@ function changebuttons() {
                 statusDisplay.innerHTML = "Create or join a game";
                 message = "Create or join a game";
                 document.getElementById("txtinput").value = "";
+                document.getElementById("txtinput").focus();
             }
             return [2 /*return*/];
         });
@@ -800,7 +833,7 @@ function handleMatchmake() {
                         if (concurrentPlayerCount == "1")
                             statusDisplay.innerHTML = "Searching for Players. No other players online";
                         else
-                            statusDisplay.innerHTML = "Searching for Players. ".concat(concurrentPlayerCount, " concurrent players");
+                            statusDisplay.innerHTML = "Searching for Players. ".concat(concurrentPlayerCount, " players online");
                         timerrunning = false;
                         gameactive = true;
                         myturn = false;
@@ -860,8 +893,16 @@ function mainMenu() {
 }
 function handleLogin() {
     logginginscreen = true;
-    gamestate = "authenticate";
-    changebuttons();
+    //if no cookie from previous login, direct to login page
+    if (getCookie("username") == "" || getCookie("password") == "") {
+        gamestate = "authenticate";
+        changebuttons();
+    }
+    else {
+        username = getCookie("username");
+        password = getCookie("password");
+        authSubmit();
+    }
 }
 function createAccount() {
     logginginscreen = false;
@@ -893,16 +934,48 @@ function back() {
         });
     });
 }
+function hideLogout() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            document.getElementById("logout").style.display = "none";
+            return [2 /*return*/];
+        });
+    });
+}
+function toggleLogoutVisibility() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            if (document.getElementById("logout").style.display == "initial")
+                document.getElementById("logout").style.display = "none";
+            else
+                document.getElementById("logout").style.display = "initial";
+            return [2 /*return*/];
+        });
+    });
+}
+function logout() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            setCookie("username", "", -1);
+            setCookie("password", "", -1);
+            location.reload();
+            return [2 /*return*/];
+        });
+    });
+}
 function authSubmit() {
     return __awaiter(this, void 0, void 0, function () {
-        var username, password, result, result;
+        var result, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    username = document.getElementById("usernameinput").value;
-                    password = document.getElementById("passwordinput").value;
-                    if (username == "" || password == "")
-                        return [2 /*return*/];
+                    //If no cookies, grab from text boxes
+                    if (username == "" || password == "") {
+                        username = document.getElementById("usernameinput").value;
+                        password = document.getElementById("passwordinput").value;
+                        if (username == "" || password == "")
+                            return [2 /*return*/];
+                    }
                     if (!logginginscreen) return [3 /*break*/, 2];
                     statusDisplay.innerHTML = "Logging in...";
                     return [4 /*yield*/, call(username, password, 0, "login")];
@@ -913,6 +986,8 @@ function authSubmit() {
                             statusDisplay.innerHTML = "Incorrect username/password";
                         else
                             statusDisplay.innerHTML = "Something went wrong. Try again later";
+                        password = "";
+                        username = "";
                     }
                     else {
                         loggedin = true;
@@ -923,7 +998,8 @@ function authSubmit() {
                         changebuttons();
                         pingServer();
                         pinging = true;
-                        // console.log(playerid)
+                        setCookie("username", username, 2);
+                        setCookie("password", password, 2);
                     }
                     return [3 /*break*/, 4];
                 case 2:
@@ -941,7 +1017,6 @@ function authSubmit() {
                         changebuttons();
                         pingServer();
                         pinging = true;
-                        // console.log(playerid)
                     }
                     _a.label = 4;
                 case 4: return [2 /*return*/];
@@ -989,7 +1064,7 @@ var call = function (playerid, gameid, col, path) { return __awaiter(_this, void
                     "gameid": gameid,
                     "col": col,
                 };
-                return [4 /*yield*/, fetch('159.89.145.75/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
+                return [4 /*yield*/, fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } })];
             case 1:
                 res = _a.sent();
                 return [4 /*yield*/, res.json()];
@@ -1013,6 +1088,8 @@ document.querySelector('.createaccount').addEventListener('click', createAccount
 document.querySelector('.continueguest').addEventListener('click', continueGuest);
 document.querySelector('.authsubmit').addEventListener('click', authSubmit);
 document.querySelector('.back').addEventListener('click', back);
+document.querySelector('.logout').addEventListener('click', logout);
+document.querySelector('.account').addEventListener('click', toggleLogoutVisibility);
 //un-greys out joingame button when input field selected
 var txtInput = document.getElementById("txtinput");
 txtInput.addEventListener("input", function () {
@@ -1022,6 +1099,24 @@ txtInput.addEventListener("input", function () {
     }
     else {
         document.getElementById('joingame').style.opacity = ".5";
+    }
+});
+//When in login/signup screen pressing enter will always try to submit form
+document.getElementById("passwordinput").addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        document.getElementById('authsubmit').click();
+    }
+});
+document.getElementById("usernameinput").addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        document.getElementById('authsubmit').click();
+    }
+});
+document.addEventListener("click", function (event) {
+    var clickedElement = event.target;
+    var accountButton = document.getElementById("account");
+    if (clickedElement !== accountButton && !accountButton.contains(clickedElement)) {
+        hideLogout();
     }
 });
 //Given a board and the most recent piece played, checks if a win exists around that piece.

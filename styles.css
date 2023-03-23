@@ -3,12 +3,46 @@ body {
     background-color: #2B303A;
 }
 
+.account {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.logout {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    border-radius: 5px;
+    background-color: #E1E0E0;
+    width: 200px;
+    height: 50px;
+    font-size: 25px;
+    color: #11213a;
+    border: 2px solid #11213a;
+    cursor: pointer;
+}
+
+.scores {
+    font-size: 25px;
+    color: #F7B32B;
+    margin: 20px auto;
+}
+
 section {
     text-align: center;
 }
 
 .game--title {
-    font-size: 75px;
+    font-size: 60px;
     color: #F7B32B;
     margin: 3px auto;
 }
@@ -38,15 +72,8 @@ section {
     align-items: center;
 }
 
-
 .game--status {
-    font-size: 50px;
-    color: #F7B32B;
-    margin: 20px auto;
-}
-
-.scores {
-    font-size: 25px;
+    font-size: 40px;
     color: #F7B32B;
     margin: 20px auto;
 }
@@ -203,4 +230,156 @@ section {
     color: #11213a;
     border: 2px solid #11213a;
     cursor: pointer;
+}
+
+@media (max-width: 767px) {
+    .game--title {
+        font-size: 50px;
+    }
+
+    .game--container {
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
+        grid-template-columns: repeat(7, auto);
+        width: 350px;
+        height: 301px;
+        margin: 10px auto;
+        background-color: #000000;
+    }
+
+    .cell {
+        height: 46px;
+        width: 46px;
+        font-size: 20px;
+    }
+
+    .game--status {
+        font-size: 25px;
+        margin: 10px auto;
+    }
+
+    .scores {
+        font-size: 18px;
+        margin: 15px auto;
+    }
+
+    .txtinput {
+        width: 102px;
+        height: 34px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .account {
+        width: 110px;
+        height: 40px;
+        font-size: 20px;
+        top: 600px;
+        left: 17px;
+    }
+
+    .logout {
+        width: 110px;
+        height: 40px;
+        font-size: 20px;
+        top: 600px;
+        left: 132px;
+    }
+
+    .mainmenu {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+        margin-top: 5px;
+    }
+
+    .singleplayer {
+        width: 110px;
+        height: 40px;
+        font-size: 20px;
+        vertical-align: top;
+    }
+
+    .matchmake {
+        width: 110px;
+        height: 40px;
+        font-size: 17px;
+        vertical-align: top;
+    }
+
+    .privatematch {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .creategame {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .joingame {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+
+    .quitgame {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .timer {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .continueguest {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .login {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .createaccount {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .authsubmit {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+    }
+
+    .back {
+        width: 110px;
+        height: 40px;
+        font-size: 15px;
+        vertical-align: top;
+        margin-top: 5px;
+    }
 }

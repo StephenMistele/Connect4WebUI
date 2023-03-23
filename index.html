@@ -7,11 +7,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Connect 4</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.jpg">
 </head>
 
 <body>
     <section>
         <h1 class="game--title">Connect 4</h1>
+        <button id="account" class="account">Account</button>
+        <button id="logout" class="logout" display="none">Logout</button>
+
         <div id="board" class="game--container">
             <div id="0" data-cell-index="0" class="cell"></div>
             <div id="1" data-cell-index="1" class="cell"></div>
@@ -68,14 +72,14 @@
         <button id="matchmake" class="matchmake">Matchmake</button>
         <button id="privatematch" class="privatematch">Private Match</button>
         <button id="creategame" class="creategame">Create Game</button>
-        <input type="text" id="txtinput" class="txtinput" placeholder="Enter a game ID">
+        <input type="text" id="txtinput" class="txtinput" placeholder="Game ID">
         <button id="joingame" class="joingame">Join Game</button>
         <button id="quitgame" class="quitgame">Quit Game</button>
         <button id="timer" class="timer">Timer</button>
         <button id="mainmenu" class="mainmenu">Main Menu</button>
         <div>
-            <h4 id="scores" class="scores"></h4>
-            <h4 id="winpercent" class="scores"></h4>
+            <h5 id="scores" class="scores"></h5>
+            <h5 id="winpercent" class="scores"></h5>
         </div>
     </section>
     <script src="script.js"></script>

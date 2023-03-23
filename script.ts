@@ -21,7 +21,31 @@ var gamesplayed: number = 0;
 var pinging: boolean = false;
 var multiplayer: boolean = true;
 var aiMovenumber: number = 0;
+var username = "";
+var password = "";
 changebuttons();
+
+function setCookie(cname, cvalue, exdays) {
+    const d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    let expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+    let name = cname + "=";
+    let ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
 
 //Handle game creation
 async function createGame() {
@@ -343,7 +367,7 @@ function waitForAIMove(slot: number) {
         move = getTopSlot(3)
         let newboard = board;
         newboard[move] = 1;
-        updateboard(newboard);
+        updateboard(newboard, true);
     }
     else if (aiMovenumber == 1) {
         if (slot == 39)
@@ -352,17 +376,16 @@ function waitForAIMove(slot: number) {
             move = getTopSlot(4);
         let newboard = board;
         newboard[move] = 1;
-        updateboard(newboard);
+        updateboard(newboard, true);
     }
     else {
         let AIPlayedCol = getAIMove(getSplitBoard(board));
         move = getTopSlot(AIPlayedCol)
         let newboard = board;
         newboard[move] = 1;
-        updateboard(newboard);
+        updateboard(newboard, true);
 
         //Check if won
-        // console.log("checking for AI win", "col = ", AIPlayedCol, "row = ", getTopEmptyRowInSplitBoard(getSplitBoard(board), AIPlayedCol) + 1, board);
         if (checkWin(1, AIPlayedCol, getTopEmptyRowInSplitBoard(getSplitBoard(board), AIPlayedCol) + 1, getSplitBoard(board))) {
             gameactive = false;
             statusDisplay.innerHTML = `Game lost`;
@@ -384,10 +407,9 @@ function handleSingleplayerMove(col: number) {
         return;
     let newboard = board;
     newboard[slot] = 2;
-    updateboard(newboard);
+    updateboard(newboard, false);
 
     //Check if won
-    // console.log("checking for human win", "col = ", slot % 7, "row = ", getTopEmptyRowInSplitBoard(getSplitBoard(board), slot % 7) + 1, board);
     if (checkWin(2, slot % 7, getTopEmptyRowInSplitBoard(getSplitBoard(board), slot % 7) + 1, getSplitBoard(board))) {
         gameactive = false;
         statusDisplay.innerHTML = `Game won!`;
@@ -422,7 +444,7 @@ async function handleMultiplayerMove(col: number) {
         gameswon++;
         gameactive = false;
         statusDisplay.innerHTML = `Game won!`;
-        updateboard(moveresponse[2]);
+        updateboard(moveresponse[2], false);
         gamestate = "gameover"
         changebuttons();
         return;
@@ -443,7 +465,7 @@ async function handleMultiplayerMove(col: number) {
 
     //Valid move, clean up and wait
     myturn = false;
-    updateboard(moveresponse[2]);
+    updateboard(moveresponse[2], false);
     timer = turnlen;
     timerrunning = true;
     waitloop();
@@ -474,14 +496,14 @@ async function waitloop() {
                 myturn = true;
                 message = `Your move!`;
                 timer = turnlen;
-                updateboard(response[1]);
+                updateboard(response[1], true);
             }
 
             //If -2 is returned, game over
             if (response[0] == -2) {
                 if (gameactive) {
                     gameactive = false;
-                    updateboard(response[1]);
+                    updateboard(response[1], true);
                     gamestate = "gameover"
                     changebuttons();
                     if (response[2] == playerid) {
@@ -536,11 +558,11 @@ setInterval(function () {
 }, 1000);
 
 //Handles drawing the board
-function updateboard(response) {
+function updateboard(response, drawX) {
     let newboard: number[] = [].concat(...response);
     for (let i: number = 0; i < 42; i++) {
         let item: HTMLElement = document.getElementById(i.toString())
-        if (newboard[i] != board[i])
+        if (newboard[i] != board[i] && drawX)
             item.innerHTML = "X"
         else
             item.innerHTML = ""
@@ -557,7 +579,7 @@ function updateboard(response) {
 //Resets the board
 function wipeboard() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    updateboard(board)
+    updateboard(board, false)
     for (let i: number = 0; i < 42; i++) {
         let item = document.getElementById(i.toString())
         item.style.backgroundColor = defaultcolor
@@ -566,13 +588,19 @@ function wipeboard() {
 
 //When game joined/left, handle the changes to html elements
 async function changebuttons() {
+    document.getElementById("logout").style.display = "none";
     if (loggedin == true) {
+        document.getElementById("account").style.display = "initial";
+        document.getElementById("account").innerHTML = username;
         let winratio: number;
         if (gamesplayed != 0) {
             winratio = Math.floor(gameswon / gamesplayed * 100);
             (document.getElementById("winpercent")).innerHTML = "Win Rate: " + winratio + "%";
         }
         (document.getElementById("scores")).innerHTML = "Online Games Played: " + gamesplayed;
+    } else {
+        document.getElementById("account").style.display = "initial";
+        document.getElementById("account").innerHTML = "Guest";
     }
     if (gamestate == "gameover") {
         document.getElementById("joingame").style.display = "none";
@@ -611,6 +639,8 @@ async function changebuttons() {
         document.getElementById("passwordinput").style.display = "none";
         document.getElementById("authsubmit").style.display = "none";
         document.getElementById("back").style.display = "none";
+        document.getElementById("account").style.display = "none";
+        document.getElementById("logout").style.display = "none";
         statusDisplay.innerHTML = `Login, Sign up, or Don't`;
         (<HTMLInputElement>document.getElementById("usernameinput")).value = "";
         (<HTMLInputElement>document.getElementById("passwordinput")).value = "";
@@ -633,9 +663,12 @@ async function changebuttons() {
         document.getElementById("passwordinput").style.display = "initial";
         document.getElementById("authsubmit").style.display = "initial";
         document.getElementById("back").style.display = "initial";
+        document.getElementById("account").style.display = "none";
+        document.getElementById("logout").style.display = "none";
         statusDisplay.innerHTML = `Enter a Username & Password`;
         (<HTMLInputElement>document.getElementById("usernameinput")).value = "";
         (<HTMLInputElement>document.getElementById("passwordinput")).value = "";
+        (<HTMLInputElement>document.getElementById("usernameinput")).focus();
     }
     else if (gamestate == "waitinglobby") {
         document.getElementById("joingame").style.display = "none";
@@ -737,6 +770,7 @@ async function changebuttons() {
         statusDisplay.innerHTML = `Create or join a game`;
         message = `Create or join a game`;
         (<HTMLInputElement>document.getElementById("txtinput")).value = "";
+        (<HTMLInputElement>document.getElementById("txtinput")).focus();
     }
 }
 
@@ -761,7 +795,7 @@ async function handleMatchmake() {
         if (concurrentPlayerCount == "1")
             statusDisplay.innerHTML = `Searching for Players. No other players online`;
         else
-            statusDisplay.innerHTML = `Searching for Players. ${concurrentPlayerCount} concurrent players`;
+            statusDisplay.innerHTML = `Searching for Players. ${concurrentPlayerCount} players online`;
         timerrunning = false;
         gameactive = true;
         myturn = false;
@@ -821,8 +855,17 @@ function mainMenu() {
 
 function handleLogin() {
     logginginscreen = true;
-    gamestate = "authenticate";
-    changebuttons();
+
+    //if no cookie from previous login, direct to login page
+    if (getCookie("username") == "" || getCookie("password") == "") {
+        gamestate = "authenticate";
+        changebuttons();
+    }
+    else {
+        username = getCookie("username");
+        password = getCookie("password");
+        authSubmit();
+    }
 }
 
 function createAccount() {
@@ -844,11 +887,33 @@ async function back() {
     changebuttons();
 }
 
+async function hideLogout() {
+    document.getElementById("logout").style.display = "none";
+}
+
+async function toggleLogoutVisibility() {
+    if (document.getElementById("logout").style.display == "initial")
+        document.getElementById("logout").style.display = "none";
+    else
+        document.getElementById("logout").style.display = "initial";
+}
+
+async function logout() {
+    setCookie("username", "", -1);
+    setCookie("password", "", -1);
+    location.reload();
+}
+
 async function authSubmit() {
-    let username: string = (<HTMLInputElement>document.getElementById("usernameinput")).value;
-    let password: string = (<HTMLInputElement>document.getElementById("passwordinput")).value;
-    if (username == "" || password == "")
-        return;
+    //If no cookies, grab from text boxes
+    if (username == "" || password == "") {
+        username = (<HTMLInputElement>document.getElementById("usernameinput")).value;
+        password = (<HTMLInputElement>document.getElementById("passwordinput")).value;
+        if (username == "" || password == "")
+            return;
+    }
+
+    //If cookies, skip login screen and try to login immediately
     if (logginginscreen) {
         statusDisplay.innerHTML = `Logging in...`;
         let result = await call(username, password, 0, "login");
@@ -857,6 +922,8 @@ async function authSubmit() {
                 statusDisplay.innerHTML = `Incorrect username/password`;
             else
                 statusDisplay.innerHTML = `Something went wrong. Try again later`;
+            password = "";
+            username = "";
         }
         else {
             loggedin = true;
@@ -867,7 +934,8 @@ async function authSubmit() {
             changebuttons();
             pingServer();
             pinging = true;
-            // console.log(playerid)
+            setCookie("username", username, 2);
+            setCookie("password", password, 2);
         }
     }
     else {
@@ -883,7 +951,6 @@ async function authSubmit() {
             changebuttons();
             pingServer();
             pinging = true;
-            // console.log(playerid)
         }
     }
 }
@@ -910,9 +977,8 @@ const call = async (playerid, gameid, col, path) => {
         "gameid": gameid,
         "col": col,
     }
-    // console.log('http://localhost:3000/' + path)
-    // const res: Response = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
-    const res: Response = await fetch('159.89.145.75/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    const res: Response = await fetch('http://localhost:3000/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
+    // const res: Response = await fetch('https://connect4api.stephenmistele.com/' + path, { method: "post", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
     const json = await res.json();
     return json[0].data;
 }
@@ -931,6 +997,8 @@ document.querySelector('.createaccount').addEventListener('click', createAccount
 document.querySelector('.continueguest').addEventListener('click', continueGuest);
 document.querySelector('.authsubmit').addEventListener('click', authSubmit);
 document.querySelector('.back').addEventListener('click', back);
+document.querySelector('.logout').addEventListener('click', logout);
+document.querySelector('.account').addEventListener('click', toggleLogoutVisibility);
 
 //un-greys out joingame button when input field selected
 const txtInput = document.getElementById("txtinput") as HTMLInputElement;
@@ -940,6 +1008,26 @@ txtInput.addEventListener("input", function () {
         document.getElementById('joingame').style.opacity = "1";
     } else {
         document.getElementById('joingame').style.opacity = ".5";
+    }
+});
+
+//When in login/signup screen pressing enter will always try to submit form
+(document.getElementById("passwordinput") as HTMLInputElement).addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        document.getElementById('authsubmit').click();
+    }
+});
+(document.getElementById("usernameinput") as HTMLInputElement).addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        document.getElementById('authsubmit').click();
+    }
+});
+
+document.addEventListener("click", (event) => {
+    const clickedElement = event.target as HTMLElement;
+    let accountButton = document.getElementById("account");
+    if (clickedElement !== accountButton && !accountButton.contains(clickedElement)) {
+        hideLogout();
     }
 });
 
